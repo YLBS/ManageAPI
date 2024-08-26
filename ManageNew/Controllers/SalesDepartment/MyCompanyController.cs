@@ -1,10 +1,12 @@
 ﻿
 using IService;
 using IService.SalesDepartment;
+using ManageNew.CacheManageTool;
 using ManageNew.Controllers.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Model;
+using Model.enums;
 using Model.SalesDepartment;
 
 namespace ManageNew.Controllers.SalesDepartment
@@ -20,14 +22,16 @@ namespace ManageNew.Controllers.SalesDepartment
         private readonly IMyCompany _company;
         private readonly IMemoryCache _cache;
         private readonly IHomePageService _userRole;
+        private readonly CheckPermission _cacheMange;
         /// <summary>
         /// 构造方法
         /// </summary>
-        public MyCompanyController(IMyCompany company, IMemoryCache cache, IHomePageService userRole)
+        public MyCompanyController(IMyCompany company, IMemoryCache cache, IHomePageService userRole, CheckPermission memoryCache)
         {
             _company= company;
             _cache= cache;
             _userRole= userRole;
+            _cacheMange = memoryCache;
         }
 
         /// <summary>
@@ -107,15 +111,18 @@ namespace ManageNew.Controllers.SalesDepartment
             return Ok(ResultMode<string>.Failed("发送失败"));
 
         }
-        
+
         /// <summary>
-        /// 检查权限—企业信息查看
+        /// 检查权限—企业信息查看,返回true为权限
+        /// 查看企业服务资料
         /// </summary>
         /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> CheckCompanyViewPermission()
         {
-            return Ok();
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            var result = await _cacheMange.CheckCompanyViewPermission(CompanyViewEnum.ViewCompanyServiceInfo, Convert.ToInt32(userId));
+            return Ok(ResultMode<bool>.Success(result));
         }
     }
 }

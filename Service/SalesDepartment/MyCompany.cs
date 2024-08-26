@@ -10,18 +10,22 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using Entity.GoodBoss;
 using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
+using PubInformation = Entity.Goodjob.PubInformation;
 
 namespace Service.SalesDepartment
 {
     public class MyCompany : IMyCompany
     {
         private readonly GoodjobContext _context;
+        private readonly GoodBossContext _bossContext;
         private readonly IMapper _mapper;
-        public MyCompany(GoodjobContext context,IMapper mapper)
+        public MyCompany(GoodjobContext context,IMapper mapper, GoodBossContext goodBoss)
         {
             _context = context;
             _mapper = mapper;
+            _bossContext = goodBoss;
         }
 
         public async Task<(IEnumerable<MySalesCompanyListInfo> item, int count)> GetData(string filter)
@@ -54,6 +58,13 @@ namespace Service.SalesDepartment
                                                              (m.MemId == memId &&
                                                               departUserId.Contains(m.SalerUserId)))).FirstOrDefaultAsync();
             return r1 != null;
+        }
+
+        public async Task<IEnumerable<SectionModel>> GetUserSectionDictionary(int userId)
+        {
+            var parameters = new { UserID = userId};
+            var result = await _bossContext.Database.GetDbConnection().QueryAsync<SectionModel>("Sys_Mana_GetUserSection", parameters, commandType: CommandType.StoredProcedure);
+            return result;
         }
     }
 }

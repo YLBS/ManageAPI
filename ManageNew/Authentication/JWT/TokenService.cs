@@ -34,7 +34,7 @@ namespace ManageNew.Authentication.JWT
         public async Task<Token> IssueTokenAsync(LoginUserInfo loginUserInfo)
         {
             var nowTime = DateTime.Now;
-            var expiresTime = nowTime.AddSeconds(10); //有效期4小时
+            var expiresTime = nowTime.AddMinutes(_jwtAuthOptions.Value.Expires); 
             var refreshTokenExpires = nowTime.AddHours(_jwtAuthOptions.Value.RefreshTokenExpires); 
             List<Claim> claims = new List<Claim>
             {

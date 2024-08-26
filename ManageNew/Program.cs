@@ -2,6 +2,7 @@ using Common.Cache;
 using Common.ConfigOptions;
 using Common.Tool;
 using ManageNew.Authentication.JWT;
+using ManageNew.CacheManageTool;
 using ManageNew.Controllers.Common;
 using ManageNew.ExceptionFilter;
 using ManageNew.Extensions;
@@ -28,7 +29,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 
 //依赖注册接口和实现类
 builder.Services.AddDi();
-//builder.Services.AddScoped<CommonsController>();
+builder.Services.AddScoped<CheckPermission>();
 //添加缓存
 builder.Services.AddResponseCaching(); //只适用于get请求
 builder.Services.AddMemoryCache();
