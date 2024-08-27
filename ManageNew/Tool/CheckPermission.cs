@@ -1,5 +1,7 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using IService.SalesDepartment;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Caching.Memory;
 using Model;
 using Model.enums;
@@ -7,7 +9,7 @@ using Model.SalesDepartment;
 using Newtonsoft.Json.Linq;
 using Service.SalesDepartment;
 
-namespace ManageNew.CacheManageTool
+namespace ManageNew.Tool
 {
     /// <summary>
     /// 检查权限
@@ -35,8 +37,6 @@ namespace ManageNew.CacheManageTool
         {
             int rank = await GetUserPermissionRank((int)SectionEnum.CompanyView, userId);
 
-            //只有 rank 和 pagePermission 相等，或者 rank = 255,才返回true,为有权限
-
             pagePermission = pagePermission & (CompanyViewEnum.All ^ (CompanyViewEnum)rank);
 
             return ((int)pagePermission).Equals(0);
@@ -44,23 +44,38 @@ namespace ManageNew.CacheManageTool
 
         private async Task<int> GetUserPermissionRank(int sectionId,int userId)
         {
+            int rank = 0;
             var dict = await  GetUserSectionFromHashTable(userId);
-
-            var rank = dict.Where(s => s.SectionId == sectionId).Select(s=>s.Rank).LastOrDefault();
+            if (dict.Contains(sectionId))
+            {
+                rank = Convert.ToInt32(dict[sectionId]);
+            }
+            //dict.TryGetValue(sectionId, out int rank);
+            // var rank = dict.Where(s => s.SectionId == sectionId).Select(s=>s.Rank).LastOrDefault();
 
             return rank;
         }
 
-        private async Task<IEnumerable<SectionModel>> GetUserSectionFromHashTable(int userId)
+        private async Task<IDictionary> GetUserSectionFromHashTable(int userId)
         {
             string cacheKey = "UserSectionHashTable" + userId;
-            if (!_cache.TryGetValue(cacheKey, out IEnumerable<SectionModel> result))
+            if (!_cache.TryGetValue(cacheKey, out IDictionary dic))
             {
-                result = await _company.GetUserSectionDictionary(userId);
-
-                _cache.Set(cacheKey, result);
+                dic = new Dictionary<int, int>();
+                var result = await _company.GetUserSectionDictionary(userId);
+                foreach (var section in result)
+                {
+                    if (!dic.Contains(section.SectionId))
+                        dic.Add(section.SectionId, section.Rank);
+                    else
+                    {
+                        int oldRank = Convert.ToInt32(dic[section.SectionId]);
+                        dic[section.SectionId] = oldRank | section.Rank;
+                    }
+                }
+                _cache.Set(cacheKey, dic);
             }
-            return result;
+            return dic;
         }
     }
 }

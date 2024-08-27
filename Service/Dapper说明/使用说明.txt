@@ -1,4 +1,5 @@
-﻿1.执行SQL查询 将结果集映射到DTO
+﻿ 若DTO有构造方法，必须有一个无参数的构造方法!!!
+1.执行SQL查询 将结果集映射到DTO
 	查寻一条数据，返回 Dto
 	var result= await _context.Database.GetDbConnection().QueryFirstOrDefaultAsync<Dto>(sql);
 	查询多条，返回 IEnumerable<Dto>

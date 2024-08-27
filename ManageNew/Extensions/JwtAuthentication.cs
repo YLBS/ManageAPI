@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using static NodaTime.TimeZones.ZoneEqualityComparer;
 
 namespace ManageNew.Extensions
 {
@@ -43,17 +44,19 @@ namespace ManageNew.Extensions
             {
                 var ss = ClaimTypes.Role;
 
-                option.AddPolicy("Role", policy => policy.RequireRole("角色1", "角色2"));
-                
+                option.AddPolicy("Role1", policy => policy.RequireRole("角色1"));
+
+                option.AddPolicy("Role3", policy => policy.RequireRole("角色1", "角色2"));
+
                 //option.AddPolicy("Role", policyBuilder =>
                 //    policyBuilder.RequireAssertion(context =>
                 //        context.User.HasClaim(c => c.Type == "Role")
                 //        && context.User.Claims.First(c => c.Type.Equals("Role")).Value == "角色1"));
 
-                option.AddPolicy("Role1", policyBuilder =>
+                option.AddPolicy("Role2", policyBuilder =>
                     policyBuilder.RequireAssertion(context =>
-                        context.User.HasClaim(c => c.Type == "Role")
-                        && context.User.Claims.First(c => c.Type.Equals("Role")).Value == "角色2"));
+                        context.User.HasClaim(c => c.Type == ss)
+                        && context.User.Claims.First(c => c.Type.Equals(ss)).Value == "角色2"));
             });
         }
     }

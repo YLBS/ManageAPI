@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Model;
+using System.Net;
+using ManageNew.log;
 
 namespace ManageNew.Controllers
 {
@@ -83,7 +85,7 @@ namespace ManageNew.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        [Authorize(Policy = "Role")]
+        [Authorize(Policy = "Role1")]
         public async Task<IActionResult> Get1()
         {
             await Task.Delay(1);
@@ -96,7 +98,7 @@ namespace ManageNew.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        [Authorize(Policy = "Role1")]
+        [Authorize(Policy = "Role2")]
         public async Task<IActionResult> Get2()
         {
             await Task.Delay(1);
@@ -104,7 +106,19 @@ namespace ManageNew.Controllers
             //var dt = await t.GetOutJiuYeStationList();
             //return Ok(new { dt });
         }
-
+        /// <summary>
+        /// 测试权限,拥有角色1或者角色2的用户才能访问
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Authorize(Policy = "Role3")]
+        public async Task<IActionResult> Get3()
+        {
+            await Task.Delay(1);
+            return Ok(32);
+            //var dt = await t.GetOutJiuYeStationList();
+            //return Ok(new { dt });
+        }
         /// <summary>
         /// 测试http响应缓存
         /// </summary>
@@ -161,6 +175,34 @@ namespace ManageNew.Controllers
             return Ok(2);
             //var dt = await t.GetOutJiuYeStationList();
             //return Ok(new { dt });
+        }
+        /// <summary>
+        /// 获取本地IP
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult GetIp()
+        {
+            string ip = string.Empty;
+            IPAddress[] addressList = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
+            for (int i = 0; i < addressList.Length; i++)
+            {
+                ip = addressList[i].ToString();
+            }
+
+            LogConfig.TestSetConfig(ip, "ip1");
+            //string clientIP = Request.HttpContext.Connection.RemoteIpAddress?.ToString();
+            //if (Request.Headers.ContainsKey("X-Forwarded-For"))
+            //{
+            //    clientIP = Request.Headers["X-Forwarded-For"];
+            //}
+
+            //获取发起当前请求的客户端的IP地址
+            var forwardedFor = Request.Headers["X-Forwarded-For"];
+            string clientIp = forwardedFor.FirstOrDefault() ?? Request.HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
+            LogConfig.TestSetConfig(clientIp, "ip");
+
+            return Ok(ip + "," + clientIp);
         }
     }
 }

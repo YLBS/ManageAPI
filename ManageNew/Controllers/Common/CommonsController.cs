@@ -35,11 +35,11 @@ namespace ManageNew.Controllers.Common
         {
             try
             {
-                //if (sendSms.Phone == "15077490574")
-                //{
-                //    return Ok(ResultMode<string>.Failed("对不起，短信发送失败"));
-                //}
-                //return Ok(ResultMode<string>.Success("发送短信通知成功，扣除两条短信"));
+                if (sendSms.Phone == "15077490574")
+                {
+                    return Ok(ResultMode<string>.Failed("对不起，短信发送失败"));
+                }
+                return Ok(ResultMode<string>.Success("发送短信通知成功"));
 
                 var userId = _configuration["SentSMSConfig:userId"];
                 var passName = _configuration["SentSMSConfig:passName"];
@@ -53,7 +53,7 @@ namespace ManageNew.Controllers.Common
                 //string messages = xmlDoc.SelectSingleNode("/root/@messages").Value;
                 if (code.Equals("0"))
                 {
-                    return Ok(ResultMode<string>.Success("发送短信通知成功，扣除两条短信"));
+                    return Ok(ResultMode<string>.Success("发送短信通知成功"));
                 }
                 return Ok(ResultMode<string>.Failed("对不起，短信发送失败"));
             }

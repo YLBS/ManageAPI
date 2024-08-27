@@ -66,5 +66,54 @@ namespace Service.SalesDepartment
             var result = await _bossContext.Database.GetDbConnection().QueryAsync<SectionModel>("Sys_Mana_GetUserSection", parameters, commandType: CommandType.StoredProcedure);
             return result;
         }
+
+        public async Task<IEnumerable<CompanyInfo>> GetCompanyById(int memId)
+        {
+            var parameters = new { MemID = memId };
+            var result = await _context.Database.GetDbConnection().QueryAsync<CompanyInfo>("Mng_GetCompanyById", parameters, commandType: CommandType.StoredProcedure);
+            return result;
+        }
+
+        public async Task<IEnumerable<CompanyServiceInfo>> GetCompanyServiceById(int memId)
+        {
+            var parameters = new { MemID = memId };
+             var result = await _context.Database.GetDbConnection().QueryAsync<CompanyServiceInfo>("Mng_GetCompanyServiceByID", parameters, commandType: CommandType.StoredProcedure);
+            return result;
+        }
+
+        public async Task<(string userName, string passWord)> GetMemUserNameAndPassWord(int memId)
+        {
+            string sql = $" select UserName,PassWord from Mem_Users where MemID={memId}";
+            var result = await _context.Database.GetDbConnection().QueryFirstOrDefaultAsync<(string userName, string passWord)>(sql);
+            return result;
+        }
+
+        public async Task<bool> SendPasswordLink(int memId, string sid)
+        {
+            var l=await _context.MemUsers.Where(m => m.MemId == memId).FirstOrDefaultAsync();
+            if (l == null)
+            {
+                return false;
+            }
+            var parameters = new { MemID = memId, EncryptionStr = sid };
+            var result = await _context.Database.GetDbConnection().ExecuteAsync("SendPasswordLink", parameters, commandType: CommandType.StoredProcedure);
+            return result > 0;
+            //var list = await _context.MemBackPasswords.Where(m => m.MemId == memId).FirstOrDefaultAsync();
+            //if (list == null)
+            //{
+            //    MemBackPassword m = new MemBackPassword();
+            //    m.MemId = memId;
+            //    m.EncryptionStr = sid;
+            //    m.SendTime= DateTime.Now;
+            //    m.Flag = false;
+            //    _context.MemBackPasswords.Add(m);
+            //    return await _context.SaveChangesAsync() > 0;
+            //}
+            //list.EncryptionStr = sid;
+            //list.SendTime = DateTime.Now;
+            //list.Flag = true;
+            //_context.Update(list);
+            //return await _context.SaveChangesAsync() > 0;
+        }
     }
 }

@@ -26,7 +26,7 @@ namespace Common.Tool
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static string Md5Decryption(string str)
+        public static string Md5Decryption(string str,int code)
         {
             StringBuilder sb = new StringBuilder();
             using (MD5 md5 = MD5.Create())
@@ -38,7 +38,15 @@ namespace Common.Tool
                     sb.Append(hashBytes[i].ToString("x2"));
                 }
             }
-            return sb.ToString();
+            if (code == 16)
+            {
+                return sb.ToString().ToLower().Substring(8, 16);
+            }
+            if (code == 32)
+            {
+                return sb.ToString().ToLower();
+            }
+            return "00000000000000000000000000000000";
         }
 
         /// <summary>

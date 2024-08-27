@@ -52,8 +52,6 @@ namespace ManageNew.Authentication.JWT
             }
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtAuthOptions.Value.SecurityKey));
 
-           
-
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
                 issuer: _jwtAuthOptions.Value.Issuer,

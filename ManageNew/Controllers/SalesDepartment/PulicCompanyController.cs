@@ -34,7 +34,7 @@ namespace ManageNew.Controllers.SalesDepartment
             return Ok(ResultMode<Object>.Success(result));
         }
         /// <summary>
-        /// 获取企业信息
+        /// 招聘数据,获取企业信息
         /// </summary>
         /// <param name="memId"></param>
         /// <returns></returns>
@@ -42,15 +42,15 @@ namespace ManageNew.Controllers.SalesDepartment
         public async Task<IActionResult> GetCompanyInfo(int memId)
         {
             var result = await _company.GetCompanyInfo(memId);
-            string MemName = "";
+            string memName = "";
             if (result.Count() > 0)
             {
-                MemName = result.First().MemName;
+                memName = result.First().MemName;
             }
-            return Ok(ResultMode<Object>.Success(new { Data = result, MemName }));
+            return Ok(ResultMode<Object>.Success(new { Data = result, memName }));
         }
         /// <summary>
-        /// 获取企业招聘效果
+        /// 招聘数据,获取企业招聘效果
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetCompanyAd(int memId)

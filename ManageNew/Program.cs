@@ -2,7 +2,7 @@ using Common.Cache;
 using Common.ConfigOptions;
 using Common.Tool;
 using ManageNew.Authentication.JWT;
-using ManageNew.CacheManageTool;
+using ManageNew.Tool;
 using ManageNew.Controllers.Common;
 using ManageNew.ExceptionFilter;
 using ManageNew.Extensions;
@@ -57,7 +57,6 @@ builder.Services.AddDbContexts(builder.Configuration);
 CorsSetup.AddCorsSetup(builder);
 
 var app = builder.Build();
-
 
 app.UseResponseCaching();
 // Configure the HTTP request pipeline.

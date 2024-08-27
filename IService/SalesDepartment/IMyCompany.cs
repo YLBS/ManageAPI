@@ -22,5 +22,16 @@ namespace IService.SalesDepartment
         /// <param name="userId"></param>
         /// <returns></returns>
         Task<IEnumerable<SectionModel>> GetUserSectionDictionary(int userId);
+
+        Task<IEnumerable<CompanyInfo>> GetCompanyById(int memId);
+        Task<IEnumerable<CompanyServiceInfo>> GetCompanyServiceById(int memId);
+        /// <summary>
+        /// 获取企业的账号密码
+        /// </summary>
+        /// <param name="memId"></param>
+        /// <returns></returns>
+        Task<(string userName,string passWord)> GetMemUserNameAndPassWord(int memId);
+
+        Task<bool> SendPasswordLink(int memId, string sid);
     }
 }

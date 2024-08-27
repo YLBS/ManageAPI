@@ -1,13 +1,16 @@
 ﻿
+using Common.Tool;
 using IService;
 using IService.SalesDepartment;
-using ManageNew.CacheManageTool;
+using ManageNew.Tool;
 using ManageNew.Controllers.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Model;
 using Model.enums;
 using Model.SalesDepartment;
+using ManageNew.log;
+using static ServiceStack.Diagnostics.Events;
 
 namespace ManageNew.Controllers.SalesDepartment
 {
@@ -113,7 +116,7 @@ namespace ManageNew.Controllers.SalesDepartment
         }
 
         /// <summary>
-        /// 检查权限—企业信息查看,返回true为权限
+        /// 检查权限—企业信息查看,返回true为有权限
         /// 查看企业服务资料
         /// </summary>
         /// <returns></returns>
@@ -123,6 +126,107 @@ namespace ManageNew.Controllers.SalesDepartment
             var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
             var result = await _cacheMange.CheckCompanyViewPermission(CompanyViewEnum.ViewCompanyServiceInfo, Convert.ToInt32(userId));
             return Ok(ResultMode<bool>.Success(result));
+        }
+        /// <summary>
+        /// 获取企业信息，ViewCompany.aspx 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> GetCompanyById(int memId)
+        {
+            var result =await _company.GetCompanyById(memId);
+            await Task.Delay(1);
+            return Ok(ResultMode<object>.Success(result));
+        }
+
+        /// <summary>
+        /// 获取企业服务信息，ViewCompany.aspx 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> GetCompanyServiceById(int memId)
+        {
+            var result = await _company.GetCompanyServiceById(memId);
+            await Task.Delay(1);
+            return Ok(ResultMode<object>.Success(result));
+        }
+        /// <summary>
+        /// 检查权限—查看企业账号密码,返回true为有权限 ViewCompany.aspx 
+        /// 查看企业服务资料
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> CheckViewCompanyUsername()
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            var result = await _cacheMange.CheckCompanyViewPermission(CompanyViewEnum.ViewCompanyUsername, Convert.ToInt32(userId));
+            return Ok(ResultMode<bool>.Success(result));
+        }
+        /// <summary>
+        /// 获取企业的账号密码 ViewCompany.aspx 
+        /// </summary>
+        /// <param name="memId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> GetMemUserNameAndPassWord(int memId)
+        {
+            var result = await _company.GetMemUserNameAndPassWord(memId);
+            string str=result.userName+"|"+result.passWord;
+            return Ok(ResultMode<string>.Success(str));
+        }
+        /// <summary>
+        /// 获取企业的账号密码,返回json
+        /// </summary>
+        /// <param name="memId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> GetMemUserNameAndPassWord_N(int memId)
+        {
+            var result = await _company.GetMemUserNameAndPassWord(memId);
+
+            return Ok(ResultMode<object>.Success(new{ result.userName,result.passWord }));
+        }
+
+        /// <summary>
+        /// ViewCompany.aspx  获取sid;
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult GetSid(int memId)
+        {
+            string keyString = "zhangxianbingoodjob";
+            string sid = EnAndDecryption.Md5Decryption(memId + keyString + DateTime.Now.ToLongTimeString(), 32);
+            return Ok(ResultMode<string>.Success(sid));
+        }
+
+        /// <summary>
+        /// ViewCompany.aspx 发送邮件时调用,修改 Mem_BackPassword
+        /// </summary>
+        /// <param name="memId"></param>
+        /// <param name="sid"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> SendPasswordLink(int memId,string sid)
+        {
+            var r=await _company.SendPasswordLink(memId,sid);
+            return Ok(ResultMode<bool>.Success(r));
+        }
+
+        /// <summary>
+        /// ViewCompany.aspx 查看联系电话时，添加日志
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult AddLog(int memId,string memName)
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            var userName = User.Claims.FirstOrDefault(c => c.Type == "userName")?.Value;
+            var Ip = ManageIP.GetIP();
+            //var forwardedFor = Request.Headers["X-Forwarded-For"];
+            //string clientIp = forwardedFor.FirstOrDefault() ?? Request.HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
+            string loginfo = "查看人：" + userId + "-" + userName + " 查看企业：" + memId + "-" + memName + " 请求IP：" + Ip;
+            LogConfig.TestSetConfig(loginfo, "查看联系方式");
+            return Ok();
         }
     }
 }
