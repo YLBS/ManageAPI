@@ -37,6 +37,7 @@ namespace Model.SalesDepartment
             this.lastLoginDate = lastLoginDate;
         }
         
+
         #region attributes.....
 
         public int MemID

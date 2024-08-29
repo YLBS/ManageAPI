@@ -85,7 +85,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseMiddleware<JwtMiddleware>();
+//app.UseMiddleware<JwtMiddleware>();
 var errorRouteConfig = new ErrorRouteConfig(app);
 errorRouteConfig.ConfigureErrorRoutes();
 

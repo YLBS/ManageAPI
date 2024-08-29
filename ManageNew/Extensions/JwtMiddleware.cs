@@ -26,12 +26,12 @@ namespace ManageNew.Extensions
         /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
         {
-            if (context.Request.Path.StartsWithSegments("/api/auth") || context.Request.Path.StartsWithSegments("/api/Test"))
+            if (context.Request.Path.StartsWithSegments("/api/auth") || context.Request.Path.StartsWithSegments("/api/Test") || context.Request.Path.StartsWithSegments("/swagger/"))
             {
                 await _next(context);
                 return;
             }
-
+            var a= context.Request.Headers.Cookie;
             var token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             if (string.IsNullOrEmpty(token))
             {

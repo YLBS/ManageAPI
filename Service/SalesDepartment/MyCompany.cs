@@ -11,8 +11,8 @@ using Dapper;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Entity.GoodBoss;
-using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 using PubInformation = Entity.Goodjob.PubInformation;
+using Model.Common;
 
 namespace Service.SalesDepartment
 {
@@ -35,6 +35,8 @@ namespace Service.SalesDepartment
             var count = multiReader.Read<int>().ToList().FirstOrDefault();
             if (count == 0)
             {
+
+                multiReader.Dispose();
                 return (null, 0);
             }
             var result = multiReader.Read<MySalesCompanyListInfo>();
@@ -81,10 +83,13 @@ namespace Service.SalesDepartment
             return result;
         }
 
-        public async Task<(string userName, string passWord)> GetMemUserNameAndPassWord(int memId)
+        public async Task<(string userName, string passWord)> GetMemUserNameAndPassWord(int memId, string userId, string userName, string ip)
         {
             string sql = $" select UserName,PassWord from Mem_Users where MemID={memId}";
             var result = await _context.Database.GetDbConnection().QueryFirstOrDefaultAsync<(string userName, string passWord)>(sql);
+            //添加查看记录
+            var parameters = new { MemID = memId, MyUserID = userId, MemName = result.userName, UserName = userName, LastLoginIP = ip };
+            _context.Database.GetDbConnection().Execute("Mng_ViewPassword", parameters, commandType: CommandType.StoredProcedure);
             return result;
         }
 
@@ -114,6 +119,29 @@ namespace Service.SalesDepartment
             //list.Flag = true;
             //_context.Update(list);
             //return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<int> GetClient_Collaborative(int memId, int userId, int eplId)
+        {
+            string sql = " select top 1 collID from[GoodBoss].[dbo].[client_collaborative] where [state] = 1 and comId ="
+                         + "(select top 1 COM_ID from GoodBoss.dbo.CRM_Company where MEM_ID = " + memId + ")" +
+                         "and((eplID = " + userId + " and collEplid = " + eplId + ") or(eplID = " + eplId + " and collEplid = " + userId + ") )";
+            var result = await _bossContext.Database.GetDbConnection().QueryFirstOrDefaultAsync<int>(sql);
+            return result;
+        }
+
+        public async Task<IEnumerable<KeyValue>> GetCompanyImageInfoList(int top, int memId)
+        {
+            var list = await (from a in _context.MemImages
+                join b in _context.MemUsers on a.MemId equals b.MemId into tableGroup1
+                     from b in tableGroup1.DefaultIfEmpty()
+                     where  b!=null && b.MemId == memId && a.Type == 3
+                select new KeyValue
+                {
+                    Id = a.Id,
+                    Name = a.NewFilePath
+                }).ToListAsync();
+            return list.Take(top);
         }
     }
 }

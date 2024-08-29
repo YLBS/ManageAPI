@@ -2,6 +2,7 @@
 using Entity.Goodjob;
 using Entity.GoodjobInfo;
 using Entity.GoodjobOther;
+using Entity.GoodjobQuery;
 using Entity.GoodjobResum;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,8 +31,11 @@ public static class ContextConfig
 
         services.AddDbContext<Goodjob_OtherContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("GoodJobOtherConnection")));
-        string s = configuration.GetConnectionString("GoodBossConnection");
+        //string s = configuration.GetConnectionString("GoodBossConnection");
         services.AddDbContext<Goodjob_resumeContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("GoodJobReSumConnection")));
+
+        services.AddDbContext<Goodjob_QueryContext>(options =>
+            options.UseSqlServer(configuration.GetConnectionString("GoodJobQueryContext")));
     }
 }

@@ -24,7 +24,7 @@ namespace IService.SalesDepartment
         /// <returns></returns>
         Task<int> Get_WxPushingCount(string where);
 
-        Task<(int count,int syscount,int sdcount,bool tf)> GetWxPusRecordCount(int memId);
+        Task<(int count,int syscount,int sdcount,bool tf,string msg)> GetWxPusRecordCount(int memId, int userId);
         /// <summary>
         /// 判断企业是否在不推送名单内,在就不推送，返回false
         /// </summary>
@@ -58,5 +58,7 @@ namespace IService.SalesDepartment
         /// </summary>
         /// <returns></returns>
         Task<(string msg, bool result)> AddSimulationPosition(int[] posIds,int memId);
+
+        //Task<List<WxPusRecord>> Get_WxPusRecordList();
     }
 }

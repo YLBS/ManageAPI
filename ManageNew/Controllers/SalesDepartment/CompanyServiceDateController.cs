@@ -82,7 +82,14 @@ namespace ManageNew.Controllers.SalesDepartment
                 }
                 _cache.Set(cacheKey, userInfo);
             }
-            return Ok(ResultMode<object>.Success(userInfo.DeptUsers.Where(d=>d.DeptID== deptId)));
+
+            if (deptId == 0)
+            {
+                return Ok(ResultMode<object>.Success(userInfo.DeptUsers));
+            }
+
+            var s = userInfo.DeptUsers.Where(d => d.DeptID == deptId);
+            return Ok(ResultMode<object>.Success(userInfo.DeptUsers.Where(d=>d.DeptID == deptId)));
         }
 
         /// <summary>

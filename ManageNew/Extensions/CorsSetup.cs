@@ -45,7 +45,8 @@ namespace ManageNew.Extensions
                             policy
                                 .WithOrigins(options.Policy.Select(x => x.Domain).ToArray())
                                 .AllowAnyHeader()
-                                .AllowAnyMethod();
+                                .AllowAnyMethod()
+                                .AllowCredentials(); ;
                         });
                 }
             });

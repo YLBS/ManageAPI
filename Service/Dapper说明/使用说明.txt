@@ -1,4 +1,4 @@
-﻿ 若DTO有构造方法，必须有一个无参数的构造方法!!!
+﻿ 
 1.执行SQL查询 将结果集映射到DTO
 	查寻一条数据，返回 Dto
 	var result= await _context.Database.GetDbConnection().QueryFirstOrDefaultAsync<Dto>(sql);
@@ -30,7 +30,7 @@
 
 	例如执行添加的存储过程
 	var parameters = new { Parameter1 = parameter1, Parameter2 = parameter2 };
-	var result = connection.Execute("存储过程名称", parameters, commandType: CommandType.StoredProcedure);
+	var result = _context.Database.GetDbConnection().Execute("存储过程名称", parameters, commandType: CommandType.StoredProcedure);
 	result 为受影响行数
 4.SQL查询返回一个总数目
 	string sql=""select count(*) from tableName";

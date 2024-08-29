@@ -170,7 +170,11 @@ namespace ManageNew.Controllers.SalesDepartment
         [HttpGet]
         public async Task<IActionResult> GetMemUserNameAndPassWord(int memId)
         {
-            var result = await _company.GetMemUserNameAndPassWord(memId);
+            var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            var userName = User.Claims.FirstOrDefault(c => c.Type == "userName")?.Value;
+            var ip = ManageIP.GetIP();
+            var result = await _company.GetMemUserNameAndPassWord(memId, userIdStr, userName, ip);
+            
             string str=result.userName+"|"+result.passWord;
             return Ok(ResultMode<string>.Success(str));
         }
@@ -182,7 +186,10 @@ namespace ManageNew.Controllers.SalesDepartment
         [HttpGet]
         public async Task<IActionResult> GetMemUserNameAndPassWord_N(int memId)
         {
-            var result = await _company.GetMemUserNameAndPassWord(memId);
+            var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            var userName = User.Claims.FirstOrDefault(c => c.Type == "userName")?.Value;
+            var ip = ManageIP.GetIP();
+            var result = await _company.GetMemUserNameAndPassWord(memId, userIdStr, userName, ip);
 
             return Ok(ResultMode<object>.Success(new{ result.userName,result.passWord }));
         }
@@ -221,12 +228,70 @@ namespace ManageNew.Controllers.SalesDepartment
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
             var userName = User.Claims.FirstOrDefault(c => c.Type == "userName")?.Value;
-            var Ip = ManageIP.GetIP();
+            var ip = ManageIP.GetIP();
+            
             //var forwardedFor = Request.Headers["X-Forwarded-For"];
             //string clientIp = forwardedFor.FirstOrDefault() ?? Request.HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
-            string loginfo = "查看人：" + userId + "-" + userName + " 查看企业：" + memId + "-" + memName + " 请求IP：" + Ip;
-            LogConfig.TestSetConfig(loginfo, "查看联系方式");
+            string logInfo = "查看人：" + userId + "-" + userName + " 查看企业：" + memId + "-" + memName + " 请求IP：" + ip;
+            LogConfig.TestSetConfig(logInfo, "查看联系方式");
             return Ok();
+        }
+        /// <summary>
+        /// ViewCompany.aspx 审核通过调用，修改
+        /// </summary>
+        /// <param name="id">ImageID</param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> CheckCompanyImage(int id)
+        {
+            return Ok();
+        }
+        /// <summary>
+        /// ViewCompany.aspx 检测企业的联系方式是否可见
+        /// </summary>
+        /// <param name="memId"></param>
+        /// <param name="salerUserId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> CheckCompanyContact(int memId,int salerUserId)
+        {
+            var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            int.TryParse(userIdStr, out int userId);
+            if (userId == 1937 || userId == 1972)
+            {
+                return Ok(ResultMode<bool>.Success(true));
+            }
+            var collId = await _company.GetClient_Collaborative(memId, userId, salerUserId);
+            if (collId == userId || collId > 0)
+            {
+                return Ok(ResultMode<bool>.Success(true));
+            }
+            return Ok(ResultMode<bool>.Success(false));
+        }
+        /// <summary>
+        /// ViewCompany.aspx 检测是否可点击发送短信按钮
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult CheckSMSBut()
+        {
+            var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            int.TryParse(userIdStr, out int userId);
+            if (userId == 1513 || userId == 458 || userId == 72 || userId == 568|| userId == 1566 || userId == 1133)
+            {
+                return Ok(ResultMode<bool>.Success(true));
+            }
+            return Ok(ResultMode<bool>.Success(false));
+        }
+        /// <summary>
+        /// 返会营业执照路径
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> GetCompanyImageInfoList(int top, int memId)
+        {
+            var result = await _company.GetCompanyImageInfoList(top, memId);
+            return Ok(ResultMode<object>.Success(result));
         }
     }
 }

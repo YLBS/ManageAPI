@@ -14,6 +14,8 @@ using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using System.Text.RegularExpressions;
 using ServiceStack;
 using System.Security.Cryptography;
+using Goodjob.Common;
+using System.Dynamic;
 
 namespace Service.SalesDepartment
 {
@@ -105,27 +107,69 @@ namespace Service.SalesDepartment
             return result;
         }
 
-        public async Task<(int count, int syscount, int sdcount, bool tf)> GetWxPusRecordCount(int memId)
+        public async Task<(int count, int syscount, int sdcount, bool tf, string msg)> GetWxPusRecordCount(int memId,int userId)
         {
-            var list = await _context.MngWxPusRecords.Where(m => m.MemId == memId && m.SendDateTime.Date == DateTime.Today)
-                .Select(m => m.SendType).ToListAsync();
-            int count=list.Count;
-            int sysCount = list.Where(s=>s==1).Count();
-            int sdCount = list.Where(s => s == 2).Count();
+            var l = await _context.MngWxPusRecords.Where(m => m.SendDateTime.Date == DateTime.Today).ToListAsync(); //今日发
+            var l1=l.Where(m=>m.MemId==memId).ToList();//给这家企业发的
+            var l2 = l.Where(m => m.EplId == userId).ToList(); //当前登录用户 今天发的
+
+            var list = l1.Select(m => m.SendType).ToList();
+
+            int count=list.Count; //发送的总数
+            int sysCount = list.Where(s=>s==1).Count();//系统发的数量
+            int sdCount = list.Where(s => s == 2).Count();//手动发的数量
+
             var mngWxPushLimit = await _context.MngWxPushLimits.FirstOrDefaultAsync();
             if (mngWxPushLimit != null)
             {
-                int dayCount = mngWxPushLimit.DayCount;
-                if (sdCount >= dayCount)
+                int dayCount = mngWxPushLimit.DayCount; //每日限量
+                int c = mngWxPushLimit.EplDayCount;//业务员每日次数
+                if (sdCount >= dayCount || l2.Count>= c)  //按钮不可见
                 {
-                    return (count, sysCount, sdCount,false);
+                    return (count, sysCount, sdCount,false, "超过日限制");
                 }
                 else
                 {
-                    return (count, sysCount, sdCount, true);
+                    var memInfo=await _context.MemInfos.Where(m=>m.MemId==memId).FirstOrDefaultAsync();
+                    if (memInfo != null)
+                    {
+                        //string[] regionCid = mngWxPushLimit.RegionCid.Split(',');
+                        //bool t = string.IsNullOrEmpty(regionCid.Where(r => r.Contains(memInfo.AddressC.ToString())).FirstOrDefault());
+                        //if (t) //不在允许的地区
+                        //{
+                        //    //return (count, sysCount, sdCount, false);
+                        //}
+                        string[] callHit = mngWxPushLimit.CalingName.Split(',');
+                        string callingName= NameProvider.GetIndustryName(memInfo.Calling);
+                        for (int i = 0; i < callHit.Length; i++)
+                        {
+                            if (callingName.Contains(callHit[i])) //不在允许的行业范围
+                            {
+                                return (count, sysCount, sdCount, false, "不在允许的行业范围"+callingName + "-" + callHit[i]);
+                            }
+                        }
+                        string[] memNameHit = mngWxPushLimit.MemKeyWored.Split(',');
+                        for (int i = 0; i < memNameHit.Length; i++)
+                        {
+                            if (memInfo.MemName.Contains(memNameHit[i])) //不在允许的企业名
+                            {
+                                return (count, sysCount, sdCount, false,
+                                    "不在允许的企业名" + memInfo.MemName + "-" + memNameHit[i]);
+                            }
+                        }
+                        string[] memIdHit = mngWxPushLimit.MemId.Split(',');
+                        for (int i = 0; i < memIdHit.Length; i++)
+                        {
+                            if (memIdHit[i].Contains(memInfo.MemId.ToString())) //不在允许的企业Id
+                            {
+                                return (count, sysCount, sdCount, false, "不在允许的企业Id:" + memId);
+                            }
+                        }
+                    }
+                    
                 }
             }
-            return (count, sysCount, sdCount, false);
+            return (count, sysCount, sdCount, true, "");
         }
 
         public async Task<bool> EstimatePush(int memId)

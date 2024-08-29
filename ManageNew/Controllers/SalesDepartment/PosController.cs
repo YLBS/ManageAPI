@@ -1,8 +1,11 @@
-﻿using Entity.Goodjob;
+﻿using Commons.Tool;
+using Entity.Goodjob;
 using IService.SalesDepartment;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Model;
+using Model.Common;
+using System.Globalization;
 
 namespace ManageNew.Controllers.SalesDepartment
 {
@@ -15,13 +18,15 @@ namespace ManageNew.Controllers.SalesDepartment
     public class PosController : ControllerBase
     {
         private readonly IPosService _posService;
+        public readonly IConfiguration _configuration;
         /// <summary>
         /// 构造方法
         /// </summary>
         /// <param name="posService"></param>
-        public PosController(IPosService posService)
+        public PosController(IPosService posService, IConfiguration configuration)
         {
             _posService = posService;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -102,13 +107,15 @@ namespace ManageNew.Controllers.SalesDepartment
             return Ok(ResultMode<int>.Success(result));
         }
         /// <summary>
-        /// 根据企业ID返回推送的总数，以及手动和自动推送的数量
+        /// 根据企业ID返回推送的总数，以及手动和自动推送的数量,以及判斷 微信发送 按钮是否可见
         /// </summary>
         /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> GetWxPusRecordCount(int memId)
         {
-            var result = await _posService.GetWxPusRecordCount(memId);
+            string userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            int.TryParse(userIdStr, out int id);
+            var result = await _posService.GetWxPusRecordCount(memId,id);
             return Ok(ResultMode<object>.Success(new
             {
                 result.count,result.syscount,result.sdcount,
@@ -165,5 +172,28 @@ namespace ManageNew.Controllers.SalesDepartment
             }
             return Ok(ResultMode<string>.Failed(result.msg));
         }
+        
+        /// <summary>
+        /// 微信发送
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> WxPushPos([FromForm] KeyValue keyValue)
+        {
+            string userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            int.TryParse(userIdStr, out int id);
+            var result = await _posService.GetWxPusRecordCount(keyValue.Id, id);
+            if (!result.tf) //按钮不可见的情况下，调用了
+            {
+                return Ok(ResultMode<string>.Failed(result.msg));
+            }
+            var wxPushPosUrl = _configuration["WxPushPosUrl"];
+            string userName = User.Claims.FirstOrDefault(c => c.Type == "userName")?.Value;
+            string qstr = "WordKey=" + keyValue.Name + "&EplName=" + userName;
+            qstr += "&Action=SysWxPushPos&MemID=" + keyValue.Id + "&EplId=" + userIdStr;
+            var pushResult= "pushResult";//Ticke.GetPage(wxPushPosUrl, qstr);
+            return Ok(ResultMode<string>.Success(pushResult));
+        }
+
     }
 }

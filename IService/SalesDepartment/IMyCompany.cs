@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Model.Common;
 using Model.SalesDepartment;
 
 namespace IService.SalesDepartment
@@ -28,10 +29,11 @@ namespace IService.SalesDepartment
         /// <summary>
         /// 获取企业的账号密码
         /// </summary>
-        /// <param name="memId"></param>
         /// <returns></returns>
-        Task<(string userName,string passWord)> GetMemUserNameAndPassWord(int memId);
+        Task<(string userName,string passWord)> GetMemUserNameAndPassWord(int memId,string userId,string userName,string ip);
 
         Task<bool> SendPasswordLink(int memId, string sid);
+        Task<int> GetClient_Collaborative(int memId, int userId, int eplId);
+        Task<IEnumerable<KeyValue>> GetCompanyImageInfoList(int top, int memId);
     }
 }
