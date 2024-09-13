@@ -6,7 +6,7 @@ using Model;
 namespace ManageNew.Controllers.SalesDepartment
 {
     /// <summary>
-    /// 我的服务申请订单
+    /// 我的服务申请订单,我的网上支付订单
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
@@ -24,7 +24,7 @@ namespace ManageNew.Controllers.SalesDepartment
             _myServiceOrder = myServiceOrder;
         }
         /// <summary>
-        ///   获取数据
+        ///   我的服务申请订单,获取数据
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -32,6 +32,18 @@ namespace ManageNew.Controllers.SalesDepartment
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
             var result = await _myServiceOrder.GetCompanyServiceDateCollection(userId);
+            return Ok(ResultMode<object>.Success(result));
+        }
+        /// <summary>
+        /// 我的网上支付订单,获取数据
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> GetMyPaymentOrderData()
+        {
+
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            var result = await _myServiceOrder.GetPaymentCollection(userId);
             return Ok(ResultMode<object>.Success(result));
         }
     }

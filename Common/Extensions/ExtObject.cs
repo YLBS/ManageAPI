@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace Common.Extensions
+namespace Commons.Extensions
 {
     /// <summary>
     /// 时间扩展

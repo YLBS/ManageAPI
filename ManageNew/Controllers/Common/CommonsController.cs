@@ -1,11 +1,10 @@
-﻿using Commons.Tool;
-using IService;
-using Microsoft.AspNetCore.Http;
+﻿using Commons.Send;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Model;
 using Model.Common;
+using System.Text;
 using System.Xml;
+//using Commons.Send;
 
 namespace ManageNew.Controllers.Common
 {
@@ -18,12 +17,14 @@ namespace ManageNew.Controllers.Common
     public class CommonsController : ControllerBase
     {
         public readonly IConfiguration _configuration;
+        public readonly Mail _mail;
         /// <summary>
         /// 构造方法
         /// </summary>
-        public CommonsController(IConfiguration configuration)
+        public CommonsController(IConfiguration configuration, Mail mail)
         {
             _configuration = configuration;
+            _mail = mail;
         }
         
         /// <summary>
@@ -39,7 +40,7 @@ namespace ManageNew.Controllers.Common
                 {
                     return Ok(ResultMode<string>.Failed("对不起，短信发送失败"));
                 }
-                return Ok(ResultMode<string>.Success("发送短信通知成功"));
+                return Ok(ResultMode<string>.Success("发送短信通知成功", "发送短信通知成功"));
 
                 var userId = _configuration["SentSMSConfig:userId"];
                 var passName = _configuration["SentSMSConfig:passName"];
@@ -53,7 +54,7 @@ namespace ManageNew.Controllers.Common
                 //string messages = xmlDoc.SelectSingleNode("/root/@messages").Value;
                 if (code.Equals("0"))
                 {
-                    return Ok(ResultMode<string>.Success("发送短信通知成功"));
+                    return Ok(ResultMode<string>.Success("发送短信通知成功", "发送短信通知成功"));
                 }
                 return Ok(ResultMode<string>.Failed("对不起，短信发送失败"));
             }
@@ -63,6 +64,22 @@ namespace ManageNew.Controllers.Common
 
             }
             
+        }
+
+        /// <summary>
+        /// 通用发送邮件
+        /// </summary>
+        /// <param name="subject">主题</param>
+        /// <param name="boys">内容</param>
+        /// <param name="emails">接收邮箱</param>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult SendMail(string subject,string boys,string emails= "@qq.com")
+        {
+            //var mail = _mail.GetMailInfo(mailType);
+            //mail.Body = string.Format(mail.Body, "pos", "posId");
+            bool yn = _mail.SendMail(emails, subject, boys);
+            return Ok(yn);
         }
     }
 }

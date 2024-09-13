@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Model.Common
 {
     /// <summary>
-    /// 键值对
+    /// 键值对,用于传一个int,一个字符串的对象
     /// </summary>
     public class KeyValue
     {

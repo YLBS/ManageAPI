@@ -1,15 +1,11 @@
 ﻿
-using Common.Tool;
-using IService;
+using Commons.Tool;
 using IService.SalesDepartment;
 using ManageNew.Tool;
-using ManageNew.Controllers.Common;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Model;
 using Model.enums;
 using Model.SalesDepartment;
-using ManageNew.log;
 using static ServiceStack.Diagnostics.Events;
 
 namespace ManageNew.Controllers.SalesDepartment
@@ -23,18 +19,16 @@ namespace ManageNew.Controllers.SalesDepartment
     public class MyCompanyController : ControllerBase
     {
         private readonly IMyCompany _company;
-        private readonly IMemoryCache _cache;
-        private readonly IHomePageService _userRole;
         private readonly CheckPermission _cacheMange;
+        private readonly ManageUserCache _userCache;
         /// <summary>
         /// 构造方法
         /// </summary>
-        public MyCompanyController(IMyCompany company, IMemoryCache cache, IHomePageService userRole, CheckPermission memoryCache)
+        public MyCompanyController(IMyCompany company,CheckPermission memoryCache, ManageUserCache manageUserCache)
         {
             _company= company;
-            _cache= cache;
-            _userRole= userRole;
             _cacheMange = memoryCache;
+            _userCache = manageUserCache;
         }
 
         /// <summary>
@@ -47,14 +41,14 @@ namespace ManageNew.Controllers.SalesDepartment
             var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
             if (userId == null)
             {
-                return Ok(ResultMode<string>.Failed("身份验证信息已经过期"));
+                return Unauthorized(ResultMode<string>.Failed("身份验证信息已经过期"));
             }
             filter += "and SalerUserID = "+ userId;
             var result = await _company.GetData(filter);
             return Ok(ResultMode<object>.Success(new { Data = result.item, Count = result.count }));
         }
         /// <summary>
-        /// 检测用户是否有查看该企业的权限，Code=0 有权限
+        /// ViewCompany.aspx 检测用户是否有查看该企业的权限，Code=0 有权限
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -64,22 +58,11 @@ namespace ManageNew.Controllers.SalesDepartment
             var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(account))
             {
-                return Ok(ResultMode<string>.Failed("身份验证信息已经过期"));
-            }
-            string cacheKey = "userInfo-" + account;
-            var userInfo = _cache.Get<LoginUserInfo>(cacheKey);
-            if (userInfo == null) //缓存丢失
-            {
-                //重新获取
-                userInfo = await _userRole.GetUserInfo(account);
-                if (userInfo == null)
-                {
-                    return Ok(ResultMode<string>.NotFound("用户不存在"));
-                }
-                _cache.Set(cacheKey, userInfo);
+                return Unauthorized(ResultMode<string>.Failed("身份验证信息已经过期"));
             }
 
-            var depUserId = userInfo.DeptUsers.Select(d => d.ClerkID).ToArray();
+            var result1 = await _userCache.GetDeptUsers(0,account);
+            var depUserId = result1.Select(d => d.ClerkID).ToArray();
             
             var result = await _company.EnableViewCompany(memId, Convert.ToInt32(userId), depUserId);
             if (result)
@@ -89,7 +72,7 @@ namespace ManageNew.Controllers.SalesDepartment
             return Ok(ResultMode<string>.Failed("无权限"));
         }
         /// <summary>
-        /// 給企业留言
+        /// SendMessage.aspx 給企业留言
         /// </summary>
         /// <returns></returns>
         [HttpPost]
@@ -99,7 +82,7 @@ namespace ManageNew.Controllers.SalesDepartment
             var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value; 
             if (userIdStr == null || userName == null)
             {
-                return Ok(ResultMode<string>.Failed("身份验证信息已经过期"));
+                return Unauthorized(ResultMode<string>.Failed("身份验证信息已经过期"));
             }
 
             informationDto.Issuer = userName;
@@ -109,7 +92,7 @@ namespace ManageNew.Controllers.SalesDepartment
             var result= await _company.AddPubInformation(informationDto);
             if (result)
             {
-                return Ok(ResultMode<string>.Success("发送成功"));
+                return Ok(ResultMode<string>.Success("发送成功", "发送成功"));
             }
             return Ok(ResultMode<string>.Failed("发送失败"));
 

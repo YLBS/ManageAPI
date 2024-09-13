@@ -1,4 +1,4 @@
-﻿namespace Common.ConfigOptions
+﻿namespace Commons.ConfigOptions
 {
     public class CorsOptions
     {

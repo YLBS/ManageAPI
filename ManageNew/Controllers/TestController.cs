@@ -1,13 +1,11 @@
-﻿using Common.Extensions;
-using IService;
+﻿using IService;
 using ManageNew.Authentication.JWT;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.IdentityModel.Tokens;
 using Model;
 using System.Net;
-using ManageNew.log;
+using Commons.Tool;
 
 namespace ManageNew.Controllers
 {
@@ -47,18 +45,18 @@ namespace ManageNew.Controllers
             //string dbValidCode = _userRole.GetValidCode(userName, out loginTime);
             //if (string.IsNullOrEmpty(dbValidCode))
             //{
-            //    return Ok(ResultMode<string>.NotFound("身份验证失败"));
+            //    return Unauthorized(ResultMode<string>.NotFound("身份验证失败"));
             //}
 
             //if (code != EnAndDecryption.Md5Decryption(dbValidCode))
             //{
-            //    return Ok(ResultMode<string>.Failed("您的身份验证信息无效"));
+            //    return Unauthorized(ResultMode<string>.Failed("您的身份验证信息无效"));
             //}
             //
             //TimeSpan timeSpan = DateTime.Now - loginTime;
             //if (timeSpan.Minutes > 60)
             //{
-            //    return Ok(ResultMode<string>.Failed("您的身份验证信息已经过期"));
+            //    return Unauthorized(ResultMode<string>.Failed("您的身份验证信息已经过期"));
             //}
             LoginUserInfo loginUserInfo = new LoginUserInfo();
             loginUserInfo.Username = login.UserName;
@@ -124,11 +122,16 @@ namespace ManageNew.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [ResponseCache(Duration = 120, Location = ResponseCacheLocation.Client)]
+        [ResponseCache(Duration = 1200, Location = ResponseCacheLocation.Client)]
         public async Task<IActionResult> TestHttpCache()
         {
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "HrSendEmailToCompany.htm");
             await Task.Delay(1500);
-            return Ok(1);
+            if (!System.IO.File.Exists(path))
+            {
+                return NotFound();
+            }
+            return Unauthorized(1);
         }
 
         /// <summary>

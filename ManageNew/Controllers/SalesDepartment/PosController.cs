@@ -40,7 +40,7 @@ namespace ManageNew.Controllers.SalesDepartment
             return Ok(ResultMode<object>.Success(new{Data= result.item, Count= result.totalRecords, Name=result.memName }));
         }
         /// <summary>
-        /// 刷新所有发布中的职位，根据企业ID查发布中的职位，再执行 RefreshSelect。。
+        /// 刷新所有发布中的职位，根据企业ID查发布中的职位，再执行 RefreshSelect。
         /// </summary>
         /// <param name="memId"></param>
         /// <returns></returns>
@@ -168,13 +168,13 @@ namespace ManageNew.Controllers.SalesDepartment
             var result = await _posService.AddSimulationPosition(ids, memId);
             if (result.result)
             {
-                return Ok(ResultMode<string>.Success(result.msg));
+                return Ok(ResultMode<string>.Success(result.msg, result.msg));
             }
             return Ok(ResultMode<string>.Failed(result.msg));
         }
         
         /// <summary>
-        /// 微信发送
+        /// 微信发送，未测试
         /// </summary>
         /// <returns></returns>
         [HttpPost]
@@ -187,13 +187,30 @@ namespace ManageNew.Controllers.SalesDepartment
             {
                 return Ok(ResultMode<string>.Failed(result.msg));
             }
+
+            
             var wxPushPosUrl = _configuration["WxPushPosUrl"];
             string userName = User.Claims.FirstOrDefault(c => c.Type == "userName")?.Value;
             string qstr = "WordKey=" + keyValue.Name + "&EplName=" + userName;
             qstr += "&Action=SysWxPushPos&MemID=" + keyValue.Id + "&EplId=" + userIdStr;
             var pushResult= "pushResult";//Ticke.GetPage(wxPushPosUrl, qstr);
-            return Ok(ResultMode<string>.Success(pushResult));
+            return Ok(ResultMode<string>.Success(pushResult, pushResult));
         }
+
+
+        /// <summary>
+        /// 职位发布效果 当前登录人，刷新所有发布中的岗位
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> RefreshAllBySalerId()
+        {
+            string userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            int.TryParse(userIdStr, out int id);
+            var s = await _posService.RefreshAllPosBySalerId(id);
+            return Ok(ResultMode<string>.Success(s,s));
+        }
+
 
     }
 }

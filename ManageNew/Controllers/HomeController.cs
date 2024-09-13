@@ -1,15 +1,7 @@
-﻿using System.Data;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Common.Tool;
-using IService;
-using ManageNew.Authentication.JWT;
-using Microsoft.AspNetCore.Http;
+﻿
+using ManageNew.Tool;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Model;
-using Nancy.Json;
-using Newtonsoft.Json;
 
 namespace ManageNew.Controllers
 {
@@ -22,15 +14,13 @@ namespace ManageNew.Controllers
     public class HomeController : ControllerBase
     {
         #region 依赖注入
-        private readonly IHomePageService _userRole;
-        private readonly IMemoryCache _cache;
+        private readonly ManageUserCache _userCache;
         /// <summary>
         /// 构造方法
         /// </summary>
-        public HomeController(IHomePageService userRole, IMemoryCache cache)
+        public HomeController(ManageUserCache manageUserCache)
         {
-            _userRole = userRole;
-            _cache = cache;
+            _userCache = manageUserCache;
         }
         
         #endregion
@@ -47,16 +37,10 @@ namespace ManageNew.Controllers
             var userId = Convert.ToInt32(User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value);
             if (userId == 0)
             {
-                return Ok(ResultMode<string>.Failed("身份验证信息已经过期"));
+                return Unauthorized(ResultMode<string>.Failed("身份验证信息已经过期"));
             }
-            string menuKey = "UserMenu-" + userId;
-            if (!_cache.TryGetValue(menuKey, out IEnumerable<UserMenuDto> result))
-            {
-                result = await _userRole.GetUserMenu(userId);
-                _cache.Set(menuKey, result);
-            }
-
-            var s = result.Where(u => u.Depth == 1);
+            var ss = await _userCache.GetUserMenu(userId);
+            var s = ss.Where(u => u.Depth == 1);
             return Ok(ResultMode<Object>.Success(s));
 
             //return Ok(result.Where(u=>u.Depth==1));
@@ -71,16 +55,10 @@ namespace ManageNew.Controllers
             var userId = Convert.ToInt32(User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value);
             if (userId == 0)
             {
-                return Ok(ResultMode<string>.Failed("身份验证信息已经过期"));
+                return Unauthorized(ResultMode<string>.Failed("身份验证信息已经过期"));
             }
-            string menuKey = "UserMenu-"+ userId;
-            if (!_cache.TryGetValue(menuKey, out IEnumerable<UserMenuDto> result))
-            {
-                result = await _userRole.GetUserMenu(userId);
-                _cache.Set(menuKey, result);
-            }
-
-            var s = result.Where(u => u.ParentID == parentId);
+            var ss = await _userCache.GetUserMenu(userId);
+            var s = ss.Where(u => u.ParentID == parentId);
             return Ok(ResultMode<object>.Success(s));
         }
         /// <summary>
@@ -93,15 +71,11 @@ namespace ManageNew.Controllers
             var userId = Convert.ToInt32(User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value);
             if (userId == 0)
             {
-                return Ok(ResultMode<string>.Failed("身份验证信息已经过期"));
+                return Unauthorized(ResultMode<string>.Failed("身份验证信息已经过期"));
             }
-            string menuKey = "UserMenu-" + userId;
-            if (!_cache.TryGetValue(menuKey, out IEnumerable<UserMenuDto> result))
-            {
-                result = await _userRole.GetUserMenu(userId);
-                _cache.Set(menuKey, result);
-            }
-            var s = result.Where(u => u.MenuID == menuId).SingleOrDefault();
+
+            var ss = await _userCache.GetUserMenu(userId);
+            var s = ss.Where(u => u.MenuID == menuId).SingleOrDefault();
             if (s != null)
             {
                 return Ok(ResultMode<string>.Success(s.MenuName));
@@ -118,7 +92,7 @@ namespace ManageNew.Controllers
             var userName = User.Claims.FirstOrDefault(c => c.Type == "userName")?.Value;
             if (userName == null)
             {
-                return Ok(ResultMode<string>.Failed("身份验证信息已经过期"));
+                return Unauthorized(ResultMode<string>.Failed("身份验证信息已经过期"));
             }
             return Ok(ResultMode<string>.Success(userName));
         }
@@ -132,7 +106,7 @@ namespace ManageNew.Controllers
             var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
             if (userId == null)
             {
-                return Ok(ResultMode<string>.Failed("身份验证信息已经过期"));
+                return Unauthorized(ResultMode<string>.Failed("身份验证信息已经过期"));
             }
             return Ok(ResultMode<string>.Success(userId));
         }

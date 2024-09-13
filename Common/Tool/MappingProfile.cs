@@ -4,7 +4,7 @@ using Entity.Goodjob;
 using Model;
 using Model.SalesDepartment;
 
-namespace Common.Tool;
+namespace Commons.Tool;
 
 public class MappingProfile : Profile
 {

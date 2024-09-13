@@ -10,6 +10,7 @@ namespace IService.SalesDepartment
 {
     public interface IMyServiceOrder
     {
-        Task<IEnumerable<ServiceOrderInfo>> GetCompanyServiceDateCollection(string filter);
+        Task<IEnumerable<ServiceOrderInfo>> GetCompanyServiceDateCollection(string userId);
+        Task<IEnumerable<PaymentOrderInfo>> GetPaymentCollection(string userId); 
     }
 }

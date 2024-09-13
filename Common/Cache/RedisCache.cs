@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ServiceStack.Redis;
 
-namespace Common.Cache
+namespace Commons.Cache
 {
     public static class RedisCache
     {

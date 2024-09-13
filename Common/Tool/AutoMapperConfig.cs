@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 
-namespace Common.Tool;
+namespace Commons.Tool;
 public class AutoMapperConfig
 {
     public static IMapper ConfigureAutoMapper()

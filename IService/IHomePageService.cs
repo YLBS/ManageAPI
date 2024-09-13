@@ -13,7 +13,7 @@ namespace IService
 
         Task<IEnumerable<UserMenuDto>> GetUserMenu(int userId);
         /// <summary>
-        /// 获取用户部分信息
+        /// 获取用户部分信息,传账号
         /// </summary>
         /// <param name="userName">这个是账号！！不是姓名</param>
         /// <returns></returns>

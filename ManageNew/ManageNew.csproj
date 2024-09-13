@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="TemplatePath\**" />
+    <Content Remove="TemplatePath\**" />
+    <EmbeddedResource Remove="TemplatePath\**" />
+    <None Remove="TemplatePath\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.32" />
     <PackageReference Include="Microsoft.AspNetCore.ResponseCaching" Version="2.2.0" />
     <PackageReference Include="Nancy" Version="2.0.0" />
@@ -22,6 +29,27 @@
     <ProjectReference Include="..\IService\IService.csproj" />
     <ProjectReference Include="..\Model\Model.csproj" />
     <ProjectReference Include="..\Service\Service.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Goodjob.Common">
+      <HintPath>\\192.168.2.252\Goodjob2017\winbin\man俊才后台的CPR\Goodjob.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Goodjob.Encryption">
+      <HintPath>bin\Debug\net6.0\Goodjob.Encryption.dll</HintPath>
+    </Reference>
+    <Reference Include="Goodjob.Position">
+      <HintPath>\\192.168.2.252\Goodjob2017\winbin\man俊才后台的CPR\Goodjob.Position.dll</HintPath>
+    </Reference>
+    <Reference Include="Goodjob.Resume">
+      <HintPath>\\192.168.2.252\Goodjob2017\winbin\man俊才后台的CPR\Goodjob.Resume.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\TalentManagement\" />
+    <Folder Include="DownResume\wkhtmltox\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>

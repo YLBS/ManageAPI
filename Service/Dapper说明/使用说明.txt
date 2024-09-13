@@ -7,10 +7,10 @@
 2.执行存储过程查询 
 	单个结果集
 	var parameters = new { 参数名称1 = 值,参数名称2 = 值.....};
-	var result= await _context.Database.GetDbConnection().QueryAsync<Dto>("存储过程名称", parameters, commandType: CommandType.StoredProcedure);
+	var result= await _context.Database.GetDbConnection().QueryFirstOrDefaultAsync<Dto>("存储过程名称", parameters, commandType: CommandType.StoredProcedure);
 	一条数据，没有返回null
 	var parameters = new { 参数名称1 = 值,参数名称2 = 值.....};
-	var result= await _context.Database.GetDbConnection().QueryFirstOrDefaultAsync<Dto>("存储过程名称", parameters, commandType: CommandType.StoredProcedure);
+	var result= await _context.Database.GetDbConnection().QueryAsync<Dto>("存储过程名称", parameters, commandType: CommandType.StoredProcedure);
 	 
 	多个结果集
 	 var multiReader = await _context.Database.GetDbConnection().QueryMultipleAsync("存储过程名称", parameters, commandType: CommandType.StoredProcedure);
@@ -35,7 +35,7 @@
 4.SQL查询返回一个总数目
 	string sql=""select count(*) from tableName";
 	var result = await _context.Database.GetDbConnection().QueryFirstOrDefaultAsync<int>(sql);
-5.获取存储过程输出的值 out ，暂时没有找到方法获取返回值，return 的值
+5.获取存储过程输出的值 out 
 	例如
 	var parameters = new { MemID = memId, SalerID = userId, DeptUserID = departId };
     var dynamicParams = new DynamicParameters(parameters); 
@@ -47,3 +47,15 @@
     );
 	object outputParameterValue = dynamicParams.Get<object>("Result");
 	outputParameterValue 为输出值
+6.获取存储过程return值
+	例如
+	 var parameters = new DynamicParameters();
+     parameters.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue); //返回值
+     parameters.Add("i",value:posId, dbType: DbType.Int32, direction: ParameterDirection.Input); //输入值，可以不写@符号
+
+     await _goodjobContext.Database.GetDbConnection().ExecuteAsync("TTT", parameters, commandType: CommandType.StoredProcedure);
+     int procedureReturn = parameters.Get<int>("ReturnValue");
+	 procedureReturn 就是返回值
+
+
+使用Dapper做自动映射，Dto里赋值的字段需要与跟数据库的查询的一致

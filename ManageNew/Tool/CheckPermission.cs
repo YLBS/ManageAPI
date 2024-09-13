@@ -30,7 +30,7 @@ namespace ManageNew.Tool
             _company = company;
         }
         /// <summary>
-        /// 检查权限
+        /// 检查权限——企业信息查看,无权限返回false
         /// </summary>
         /// <returns></returns>
         public async Task<bool> CheckCompanyViewPermission(CompanyViewEnum pagePermission,int userId)
@@ -38,6 +38,34 @@ namespace ManageNew.Tool
             int rank = await GetUserPermissionRank((int)SectionEnum.CompanyView, userId);
 
             pagePermission = pagePermission & (CompanyViewEnum.All ^ (CompanyViewEnum)rank);
+
+            return ((int)pagePermission).Equals(0);
+        }
+        /// <summary>
+        /// 检查权限——人才信息查看,无权限返回false
+        /// </summary>
+        /// <param name="pagePermission"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<bool> CheckPersonViewPermission(PersonViewEnum pagePermission, int userId)
+        {
+            int rank = await GetUserPermissionRank((int)SectionEnum.CompanyView, userId);
+
+            pagePermission = pagePermission & (PersonViewEnum.All ^ (PersonViewEnum)rank);
+
+            return ((int)pagePermission).Equals(0);
+        }
+        /// <summary>
+        /// 检查权限—人才相关管理,无权限返回false
+        /// </summary>
+        /// <param name="pagePermission"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<bool> CheckPersonPermission(PersonEnum pagePermission, int userId)
+        {
+            int rank = await GetUserPermissionRank((int)SectionEnum.CompanyView, userId);
+
+            pagePermission = pagePermission & (PersonEnum.All ^ (PersonEnum)rank);
 
             return ((int)pagePermission).Equals(0);
         }

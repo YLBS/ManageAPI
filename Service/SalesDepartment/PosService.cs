@@ -16,6 +16,8 @@ using ServiceStack;
 using System.Security.Cryptography;
 using Goodjob.Common;
 using System.Dynamic;
+using Model.Common;
+using System.Reflection.Metadata;
 
 namespace Service.SalesDepartment
 {
@@ -57,7 +59,6 @@ namespace Service.SalesDepartment
             int[] ids = await _context.MemPositions.Where(m => m.PosState == 2 && m.MemId==memId).Select(m => m.PosId).ToArrayAsync();
             if (ids.Length > 0)
             {
-
                 var posName = await RefreshSelect(ids);
                 return posName;
             }
@@ -118,7 +119,7 @@ namespace Service.SalesDepartment
             int count=list.Count; //发送的总数
             int sysCount = list.Where(s=>s==1).Count();//系统发的数量
             int sdCount = list.Where(s => s == 2).Count();//手动发的数量
-
+           
             var mngWxPushLimit = await _context.MngWxPushLimits.FirstOrDefaultAsync();
             if (mngWxPushLimit != null)
             {
@@ -209,163 +210,337 @@ namespace Service.SalesDepartment
             var posList = await _context.MemPositions.Where(m => m.PosState == 2 && ids.Contains(m.PosId)).ToListAsync();
             if (posList.Count > 0)
             {
-                int memId= posList[0].MemId;
-                var memUsers = await _context.MemUsers.Where(m => m.MemId == memId).Select(m => m.MemberClass).FirstAsync();
-                if (memUsers == -2)
+
+                int memId = posList[0].MemId;
+                string str=string.Empty;
+                var memIds = posList.Select(p => p.MemId).Distinct();
+                if (memIds.Count()>1) //不止一个企业
                 {
-                    return ("该企业已被禁用", 0);
-                }
-                int count = 1;
-                string PosName = string.Empty;
-                string Welfa = string.Empty;
-                string PosAddreass = string.Empty;
-                var dic = await _dicService.GetSalaryNew();
-                foreach (var posInfo in posList)
-                {
-                    if (!Regex.IsMatch(posInfo.Welfa, @"^[\u4e00-\u9fa5]{1,}$"))
+                    foreach (var id in memIds)
                     {
-                        string wa = Goodjob.Common.Dictionary.ArraryWelfa.GetWelfaName(posInfo.Welfa);
-                        string[] ws = wa.Split('|');
-                        foreach (var witem in ws)
+                        memId = id;
+
+                        var posList_n = posList.Where(p => p.MemId == id).ToList();
+
+                        var memUsers = await _context.MemUsers.Where(m => m.MemId == memId).Select(m => m.MemberClass).FirstAsync();
+                        if (memUsers == -2)
                         {
-                            if (!Welfa.Contains(witem))
+                            str += $"企业{posList_n[0].MemName}已被禁用";
+                            continue;
+                        }
+
+                        int count = 1;
+                        string PosName = string.Empty;
+                        string Welfa = string.Empty;
+                        string PosAddreass = string.Empty;
+                        var dic = await _dicService.GetSalaryNew();
+                        foreach (var posInfo in posList_n)
+                        {
+                            if (!Regex.IsMatch(posInfo.Welfa, @"^[\u4e00-\u9fa5]{1,}$"))
                             {
-                                Welfa += witem + "|";
+                                string wa = Goodjob.Common.Dictionary.ArraryWelfa.GetWelfaName(posInfo.Welfa);
+                                string[] ws = wa.Split('|');
+                                foreach (var witem in ws)
+                                {
+                                    if (!Welfa.Contains(witem))
+                                    {
+                                        Welfa += witem + "|";
+                                    }
+                                }
+                                if (posInfo.Welfa.Length > 1)
+                                {
+                                    foreach (var item in posInfo.Welfa.Split('|'))
+                                    {
+                                        if (!string.IsNullOrEmpty(item))
+                                        {
+                                            if (Convert.ToInt32(item) == 48)
+                                            {
+                                                Welfa += "大小周|";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            string sn = "";
+                            if (posInfo.PosType == 3)
+                            {
+
+                                PosName += count + "、" + posInfo.PosName + "(兼职" + sn + ") &#10;";
+                            }
+                            else
+                            {
+                                if (posInfo.SalaryMin != 0)
+                                {
+                                    string salaryMin;
+                                    string salaryMax;
+                                    if (posInfo.SalaryMin == posInfo.SalaryMax)
+                                    {
+                                        salaryMin = dic.Where(d => d.Id == posInfo.SalaryMin).Select(d => d.Name).FirstNonDefaultOrEmpty();
+                                        sn = salaryMin + "";
+                                    }
+                                    else
+                                    {
+                                        salaryMin = dic.Where(d => d.Id == posInfo.SalaryMin).Select(d => d.Name).FirstNonDefaultOrEmpty();
+                                        salaryMax = dic.Where(d => d.Id == posInfo.SalaryMax).Select(d => d.Name).FirstNonDefaultOrEmpty();
+                                        sn = salaryMin + "-" + salaryMax;
+                                    }
+                                }
+                                else if (!string.IsNullOrEmpty(posInfo.SalaryRange))
+                                {
+                                    sn = posInfo.SalaryRange.Replace("月薪", "");
+                                }
+                                else
+                                {
+                                    string salaryName;
+                                    if (posInfo.Salary == 20)
+                                    {
+                                        salaryName = "面议";
+                                    }
+                                    else
+                                    {
+                                        salaryName = dic.Where(d => d.Id == posInfo.Salary).Select(d => d.Name).FirstNonDefaultOrEmpty();
+                                    }
+                                    sn = salaryName;
+                                }
+                                PosName += count + "、" + posInfo.PosName + "(月薪" + sn + ") &#10;";
+                            }
+                            count++;
+                        }
+                        if (!string.IsNullOrEmpty(Welfa))
+                        {
+                            Welfa = Welfa.Substring(0, Welfa.Length - 1);
+                        }
+
+                        string url;
+                        if (posList_n.Count > 1)
+                        {
+                            url = "http://m.goodjob.cn/m" + memId + "/meminfo.html";
+                        }
+                        else
+                        {
+                            url = "http://m.goodjob.cn/m" + memId + "/p" + posList_n[0].PosId + ".html";
+                        }
+                        var memInfo = await _context.MemInfos.Where(m => m.MemId == memId).FirstAsync();
+                        string phone = "联系电话:{0} &#10;";
+                        if (string.IsNullOrEmpty(memInfo.Phone) || memInfo.PhoneFlag == false)
+                        {
+                            if (memInfo.TelShowFlag)
+                            {
+                                string phonestr = "";
+                                if (!string.IsNullOrEmpty(memInfo.ContactTelZ))
+                                {
+                                    phonestr = memInfo.ContactTelZ + "-";
+                                }
+                                if (!string.IsNullOrEmpty(memInfo.ContactTel))
+                                {
+                                    phonestr += memInfo.ContactTel;
+                                }
+                                if (!string.IsNullOrEmpty(memInfo.ContactTelE))
+                                {
+                                    if (string.IsNullOrEmpty(phonestr))
+                                    {
+                                        phonestr = memInfo.ContactTelE;
+                                    }
+                                    else
+                                    {
+                                        phonestr += "-" + memInfo.ContactTelE;
+                                    }
+                                }
+
+                                phone = string.Format(phone, phonestr);
+                            }
+                            else
+                            {
+                                phone = "";
                             }
                         }
-                        if (posInfo.Welfa.Length > 1)
+                        else
                         {
-                            foreach (var item in posInfo.Welfa.Split('|'))
+                            phone = memInfo.PhoneFlag == false ? "" : string.Format(phone, memInfo.Phone);
+                        }
+
+                        if (posList_n.Count == 1) //只有一个岗位时，地址为公司的地址
+                        {
+                            PosAddreass = memInfo.Address;
+                        }
+                        else
+                        {
+                            //多个岗位时，地址取最后一个岗位的面试地址
+                            PosAddreass = posList_n.FindLast(p => p.ExamAddress != "").ExamAddress;
+                        }
+                        str += memInfo.MemName + " &#10;"
+                                                    + "（急聘）&#10;"
+                                                    + PosName
+                                                    + "福利:" + Welfa + " &#10;"
+                                                    + "地址:" + PosAddreass + " &#10;"
+                                                    + "联系人:" + memInfo.ContactPerson + " &#10;"
+                                                    + phone
+                                                    + "投递简历链接:" + url + "&#10;"
+                                                    + "【找工作,就来俊才网投简历】点击链接提前注册简历:#小程序://俊才网/2hmbYpF0HDX9hJk" + "&#10;"
+                                                    + "#公众号：俊才网 &#10;"
+                                                    + "#小程序：俊才网 &#10 &#10;";
+                        
+                    }
+                }
+                else
+                {
+                    var memUsers = await _context.MemUsers.Where(m => m.MemId == memId).Select(m => m.MemberClass).FirstAsync();
+                    if (memUsers == -2)
+                    {
+                        return ("该企业已被禁用", 0);
+                    }
+                    int count = 1;
+                    string PosName = string.Empty;
+                    string Welfa = string.Empty;
+                    string PosAddreass = string.Empty;
+                    var dic = await _dicService.GetSalaryNew();
+                    foreach (var posInfo in posList)
+                    {
+                        if (!Regex.IsMatch(posInfo.Welfa, @"^[\u4e00-\u9fa5]{1,}$"))
+                        {
+                            string wa = Goodjob.Common.Dictionary.ArraryWelfa.GetWelfaName(posInfo.Welfa);
+                            string[] ws = wa.Split('|');
+                            foreach (var witem in ws)
                             {
-                                if (!string.IsNullOrEmpty(item))
+                                if (!Welfa.Contains(witem))
                                 {
-                                    if (Convert.ToInt32(item) == 48)
+                                    Welfa += witem + "|";
+                                }
+                            }
+                            if (posInfo.Welfa.Length > 1)
+                            {
+                                foreach (var item in posInfo.Welfa.Split('|'))
+                                {
+                                    if (!string.IsNullOrEmpty(item))
                                     {
-                                        Welfa += "大小周|";
+                                        if (Convert.ToInt32(item) == 48)
+                                        {
+                                            Welfa += "大小周|";
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-
-                    string sn = "";
-                    if (posInfo.PosType == 3)
-                    {
-
-                        PosName += count + "、" + posInfo.PosName + "(兼职" + sn + ") &#10;";
-                    }
-                    else
-                    {
-                        if (posInfo.SalaryMin != 0)
+                        string sn = "";
+                        if (posInfo.PosType == 3)
                         {
-                            string salaryMin;
-                            string salaryMax;
-                            if (posInfo.SalaryMin == posInfo.SalaryMax)
-                            {
-                                salaryMin= dic.Where(d=>d.Id==posInfo.SalaryMin).Select(d=>d.Name).FirstNonDefaultOrEmpty();
-                                sn = salaryMin + "";
-                            }
-                            else
-                            {
-                                salaryMin = dic.Where(d => d.Id == posInfo.SalaryMin).Select(d => d.Name).FirstNonDefaultOrEmpty();
-                                salaryMax = dic.Where(d => d.Id == posInfo.SalaryMax).Select(d => d.Name).FirstNonDefaultOrEmpty();
-                                sn = salaryMin + "-" + salaryMax;
-                            }
-                        }
-                        else if(!string.IsNullOrEmpty(posInfo.SalaryRange))
-                        {
-                            sn = posInfo.SalaryRange.Replace("月薪", "");
+
+                            PosName += count + "、" + posInfo.PosName + "(兼职" + sn + ") &#10;";
                         }
                         else
                         {
-                            string salaryName;
-                            if(posInfo.Salary == 20)
+                            if (posInfo.SalaryMin != 0)
                             {
-                                salaryName = "面议";
+                                string salaryMin;
+                                string salaryMax;
+                                if (posInfo.SalaryMin == posInfo.SalaryMax)
+                                {
+                                    salaryMin = dic.Where(d => d.Id == posInfo.SalaryMin).Select(d => d.Name).FirstNonDefaultOrEmpty();
+                                    sn = salaryMin + "";
+                                }
+                                else
+                                {
+                                    salaryMin = dic.Where(d => d.Id == posInfo.SalaryMin).Select(d => d.Name).FirstNonDefaultOrEmpty();
+                                    salaryMax = dic.Where(d => d.Id == posInfo.SalaryMax).Select(d => d.Name).FirstNonDefaultOrEmpty();
+                                    sn = salaryMin + "-" + salaryMax;
+                                }
+                            }
+                            else if (!string.IsNullOrEmpty(posInfo.SalaryRange))
+                            {
+                                sn = posInfo.SalaryRange.Replace("月薪", "");
                             }
                             else
                             {
-                                salaryName = dic.Where(d => d.Id == posInfo.Salary).Select(d => d.Name).FirstNonDefaultOrEmpty();
+                                string salaryName;
+                                if (posInfo.Salary == 20)
+                                {
+                                    salaryName = "面议";
+                                }
+                                else
+                                {
+                                    salaryName = dic.Where(d => d.Id == posInfo.Salary).Select(d => d.Name).FirstNonDefaultOrEmpty();
+                                }
+                                sn = salaryName;
                             }
-                            sn = salaryName;
+                            PosName += count + "、" + posInfo.PosName + "(月薪" + sn + ") &#10;";
                         }
-                        PosName += count + "、" + posInfo.PosName + "(月薪" + sn + ") &#10;";
+                        count++;
                     }
-                    count++;
-                }
-                if (!string.IsNullOrEmpty(Welfa))
-                {
-                    Welfa = Welfa.Substring(0, Welfa.Length - 1);
-                }
-
-                string url;
-                if (posList.Count > 1)
-                {
-                    url = "http://m.goodjob.cn/m" + memId + "/meminfo.html";
-                }
-                else
-                {
-                    url = "http://m.goodjob.cn/m" + memId + "/p" + posList[0].PosId + ".html"; 
-                }
-                var memInfo=await _context.MemInfos.Where(m=>m.MemId==memId).FirstAsync();
-                string phone = "联系电话:{0} &#10;";
-                if (string.IsNullOrEmpty(memInfo.Phone) || memInfo.PhoneFlag == false)
-                {
-                    if (memInfo.TelShowFlag)
+                    if (!string.IsNullOrEmpty(Welfa))
                     {
-                        string phonestr = "";
-                        if (!string.IsNullOrEmpty(memInfo.ContactTelZ))
-                        {
-                            phonestr = memInfo.ContactTelZ + "-";
-                        }
-                        if (!string.IsNullOrEmpty(memInfo.ContactTel))
-                        {
-                            phonestr += memInfo.ContactTel;
-                        }
-                        if (!string.IsNullOrEmpty(memInfo.ContactTelE))
-                        {
-                            if (string.IsNullOrEmpty(phonestr))
-                            {
-                                phonestr = memInfo.ContactTelE;
-                            }
-                            else
-                            {
-                                phonestr += "-" + memInfo.ContactTelE;
-                            }
-                        }
+                        Welfa = Welfa.Substring(0, Welfa.Length - 1);
+                    }
 
-                        phone = string.Format(phone, phonestr);
+                    string url;
+                    if (posList.Count > 1)
+                    {
+                        url = "http://m.goodjob.cn/m" + memId + "/meminfo.html";
                     }
                     else
                     {
-                        phone = "";
+                        url = "http://m.goodjob.cn/m" + memId + "/p" + posList[0].PosId + ".html";
                     }
-                }
-                else
-                {
-                    phone = memInfo.PhoneFlag == false ? "" : string.Format(phone, memInfo.Phone);
-                }
+                    var memInfo = await _context.MemInfos.Where(m => m.MemId == memId).FirstAsync();
+                    string phone = "联系电话:{0} &#10;";
+                    if (string.IsNullOrEmpty(memInfo.Phone) || memInfo.PhoneFlag == false)
+                    {
+                        if (memInfo.TelShowFlag)
+                        {
+                            string phonestr = "";
+                            if (!string.IsNullOrEmpty(memInfo.ContactTelZ))
+                            {
+                                phonestr = memInfo.ContactTelZ + "-";
+                            }
+                            if (!string.IsNullOrEmpty(memInfo.ContactTel))
+                            {
+                                phonestr += memInfo.ContactTel;
+                            }
+                            if (!string.IsNullOrEmpty(memInfo.ContactTelE))
+                            {
+                                if (string.IsNullOrEmpty(phonestr))
+                                {
+                                    phonestr = memInfo.ContactTelE;
+                                }
+                                else
+                                {
+                                    phonestr += "-" + memInfo.ContactTelE;
+                                }
+                            }
 
-                if (posList.Count == 1) //只有一个岗位时，地址为公司的地址
-                {
-                    PosAddreass = memInfo.Address;
+                            phone = string.Format(phone, phonestr);
+                        }
+                        else
+                        {
+                            phone = "";
+                        }
+                    }
+                    else
+                    {
+                        phone = memInfo.PhoneFlag == false ? "" : string.Format(phone, memInfo.Phone);
+                    }
+
+                    if (posList.Count == 1) //只有一个岗位时，地址为公司的地址
+                    {
+                        PosAddreass = memInfo.Address;
+                    }
+                    else
+                    {
+                        //多个岗位时，地址取最后一个岗位的面试地址
+                        PosAddreass = posList.FindLast(p => p.ExamAddress != "").ExamAddress;
+                    }
+                    str = memInfo.MemName + " &#10;"
+                                                + "（急聘）&#10;"
+                                                + PosName
+                                                + "福利:" + Welfa + " &#10;"
+                                                + "地址:" + PosAddreass + " &#10;"
+                                                + "联系人:" + memInfo.ContactPerson + " &#10;"
+                                                + phone
+                                                + "投递简历链接:" + url + "&#10;"
+                                                + "【找工作,就来俊才网投简历】点击链接提前注册简历:#小程序://俊才网/2hmbYpF0HDX9hJk" + "&#10;"
+                                                + "#公众号：俊才网 &#10;"
+                                                + "#小程序：俊才网 &#10;";
+                    
                 }
-                else
-                {
-                    //多个岗位时，地址取最后一个岗位的面试地址
-                    PosAddreass = posList.FindLast(p => p.ExamAddress != "").ExamAddress;
-                }
-                string str= memInfo.MemName + " &#10;"
-                                            + "（急聘）&#10;"
-                                            + PosName
-                                            + "福利:" + Welfa + " &#10;"
-                                            + "地址:" + PosAddreass + " &#10;"
-                                            + "联系人:" + memInfo.ContactPerson + " &#10;"
-                                            + phone
-                                            + "投递简历链接:" + url + "&#10;"
-                                            + "【找工作,就来俊才网投简历】点击链接提前注册简历:#小程序://俊才网/2hmbYpF0HDX9hJk" + "&#10;"
-                                            + "#公众号：俊才网 &#10;"
-                                            + "#小程序：俊才网 &#10;";
                 return (str, posList.Count);
             }
 
@@ -518,7 +693,6 @@ namespace Service.SalesDepartment
             }
 
             return "该企业没有发布中的兼职岗位";
-            throw new NotImplementedException();
         }
 
         public async Task<(string msg,bool result)> AddSimulationPosition(int[] posIds, int memId)
@@ -615,6 +789,57 @@ namespace Service.SalesDepartment
                 }
                 return (msg, false);
             }
+        }
+
+        public async Task<string> RefreshAllPosBySalerId(int salerId)
+        {
+            string filter=$" and SalerUserID = {salerId}  And MemberClass = 2";
+            var param = new { Filter = filter };
+            string memNameMassage = "";
+            int count = 0;
+            using (var reader = await _context.Database.GetDbConnection().ExecuteReaderAsync("Sales_GetCompanyList", param, commandType: CommandType.StoredProcedure))
+            {
+                if (await reader.ReadAsync())
+                {
+                    count = reader.GetInt32(0);
+                }
+
+                if (count == 0)
+                {
+                    return "很抱歉没能找到您有发布中的企业";
+                }
+
+               
+                if (await reader.NextResultAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        int memId=reader.GetInt32(0);
+                        //int memName = reader.GetInt32(1);
+                        memNameMassage += reader.GetInt32(0) + "-" + reader.GetInt32(1);
+                        //返回的是不刷新名单
+                        var ss = await RefreshAll(memId);
+                        if (string.IsNullOrEmpty(ss))
+                        {
+                            if (ss != "无发布中职位")
+                            {
+                                memNameMassage += $"职位:{ss} 已被禁止刷新,其他刷新成功。 ";
+                            }
+                        }
+                        else
+                        {
+                            memNameMassage += "刷新成功。 ";
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(memNameMassage))
+            {
+                memNameMassage = "刷新失败！请查看企业后台是否有发布在线职位！";
+            }
+
+            return memNameMassage;
         }
     }
 }

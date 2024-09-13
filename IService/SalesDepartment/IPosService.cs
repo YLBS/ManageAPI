@@ -1,4 +1,5 @@
-﻿using Model.SalesDepartment;
+﻿using Model.Common;
+using Model.SalesDepartment;
 
 namespace IService.SalesDepartment
 {
@@ -58,6 +59,8 @@ namespace IService.SalesDepartment
         /// </summary>
         /// <returns></returns>
         Task<(string msg, bool result)> AddSimulationPosition(int[] posIds,int memId);
+
+        Task<string> RefreshAllPosBySalerId(int salerId);
 
         //Task<List<WxPusRecord>> Get_WxPusRecordList();
     }

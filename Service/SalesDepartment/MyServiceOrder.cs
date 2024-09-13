@@ -27,5 +27,13 @@ namespace Service.SalesDepartment
             var result = await _context.Database.GetDbConnection().QueryAsync<ServiceOrderInfo>("Mng_GetServiceOrderList", parameters, commandType: CommandType.StoredProcedure);
             return result;
         }
+
+        public async Task<IEnumerable<PaymentOrderInfo>> GetPaymentCollection(string userId)
+        {
+            string filter = $"  AND MemID IN (SELECT MemID FROM Mem_Users WHERE SalerUserID = 0)";
+            var parameters = new { Filter = filter };
+            var result = await _context.Database.GetDbConnection().QueryAsync<PaymentOrderInfo>("Mng_GetPaymentOrderList", parameters, commandType: CommandType.StoredProcedure);
+            return result;
+        }
     }
 }

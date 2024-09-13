@@ -11,4 +11,13 @@
     <ProjectReference Include="..\Model\Model.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Goodjob.Position">
+      <HintPath>\\192.168.2.252\Goodjob2017\winbin\man俊才后台的CPR\Goodjob.Position.dll</HintPath>
+    </Reference>
+    <Reference Include="Goodjob.Resume">
+      <HintPath>\\192.168.2.252\Goodjob2017\winbin\man俊才后台的CPR\Goodjob.Resume.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

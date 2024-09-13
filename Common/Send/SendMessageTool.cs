@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
 
-namespace Commons.Tool
+namespace Commons.Send
 {
     public static class SendMessageTool
     {
@@ -18,7 +18,7 @@ namespace Commons.Tool
             qstr += "&destnumbers=" + HttpUtility.UrlEncode(desbumbers, Encoding.UTF8);
             qstr += "&msg=" + HttpUtility.UrlEncode(msg, Encoding.UTF8);
             qstr += "&sendtime=" + HttpUtility.UrlEncode(sendTime, Encoding.UTF8);
-            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create("http://server4.chineseserver.net:9801/CASServer/SmsAPI/SendMessage.jsp?" + qstr);
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create("http://server4.chineseserver.net:9801/CASServer/SmsAPI/SendMessage.jsp?" + qstr);
             req.Method = "GET";
             using (HttpWebResponse wr = (HttpWebResponse)req.GetResponse())
             {

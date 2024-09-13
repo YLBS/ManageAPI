@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Model;
+using System.Collections.Generic;
+using Model.Common;
 
 namespace ManageNew.Controllers.SalesDepartment
 {
@@ -22,20 +24,16 @@ namespace ManageNew.Controllers.SalesDepartment
         {
             _resumeVice = resumeVice;
         }
-
-        public class MyClass
-        {
-            public string filter { get; set; } = null!;
-        }
+        
         /// <summary>
         /// 获取数据,get请求居然出错了。。AND  ShareEpl_Id like '%568%'
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> GetData([FromBody] MyClass filter)
+        public async Task<IActionResult> GetData([FromBody] Singles filter)
         {
-            var list = await _resumeVice.GetData(filter.filter);
+            var list = await _resumeVice.GetViceResume(filter.filter);
             return Ok(ResultMode<object>.Success(list));
         }
         /// <summary>
@@ -70,15 +68,16 @@ namespace ManageNew.Controllers.SalesDepartment
         /// 添加推荐到企业，添加副简历
         /// </summary>
         /// <param name="memIdsPosIds">memIds 传的是 企业Id-岗位Id,企业Id-岗位Id,</param>
-        /// <param name="selectPosId">来源，部门人员的Id,当为0时，即不限时，传整个部门的人员Id,逗号分割</param>
+        /// <param name="viceIds">visId</param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> AddMemLibCommendVice(string memIdsPosIds, string selectPosId)
+        public async Task<IActionResult> AddMemLibCommendVice(string memIdsPosIds, string viceIds)
         {
 
             string userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-
-            return Ok();
+            int.TryParse(userIdStr, out int id);
+            int i = await _resumeVice.AddMemLibCommendVice(memIdsPosIds, viceIds, id);
+            return Ok(ResultMode<string>.Success($"受影响行{i}"));
         }
         /// <summary>
         /// 企业搜索查询

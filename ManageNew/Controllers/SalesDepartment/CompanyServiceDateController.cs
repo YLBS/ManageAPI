@@ -1,10 +1,7 @@
-﻿using Common.Cache;
-using IService;
+﻿
 using IService.SalesDepartment;
-using ManageNew.Authentication.JWT;
-using Microsoft.AspNetCore.Http;
+using ManageNew.Tool;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Model;
 
 namespace ManageNew.Controllers.SalesDepartment
@@ -17,19 +14,16 @@ namespace ManageNew.Controllers.SalesDepartment
     [ApiExplorerSettings(GroupName = "销售部专用")]
     public class CompanyServiceDateController : ControllerBase
     {
-
-        private readonly IMemoryCache _cache;
-        private readonly IHomePageService _userRole;
         private readonly ICompanyServiceDate _companyService;
+        private readonly ManageUserCache _userCache;
         /// <summary>
         /// 构造方法
         /// </summary>
 
-        public CompanyServiceDateController(IMemoryCache cache, IHomePageService userRole, ICompanyServiceDate company)
+        public CompanyServiceDateController(ICompanyServiceDate company,ManageUserCache manageUserCache)
         {
-            _cache = cache;
-            _userRole = userRole;
             _companyService = company;
+            _userCache = manageUserCache;
         }
 
         /// <summary>
@@ -42,21 +36,24 @@ namespace ManageNew.Controllers.SalesDepartment
             var account =  User.Claims.FirstOrDefault(c => c.Type == "account")?.Value;
             if (string.IsNullOrEmpty(account)) //token过期
             {
-                return Ok(ResultMode<string>.Failed("身份验证信息已过期"));
+                return Unauthorized(ResultMode<string>.Failed("身份验证信息已过期"));
             }
-            string cacheKey = "userInfo-"+ account;
-            var userInfo = _cache.Get<LoginUserInfo>(cacheKey);
-            if (userInfo == null) //缓存丢失
-            {
-                //重新获取
-                userInfo = await _userRole.GetUserInfo(account);
-                if (userInfo == null)
-                {
-                    return Ok(ResultMode<string>.NotFound("用户不存在"));
-                }
-                _cache.Set(cacheKey, userInfo);
-            }
-            return Ok(ResultMode<object>.Success(userInfo.DeptName));
+            var result = await _userCache.GetDept(account);
+            return Ok(ResultMode<object>.Success(result));
+
+            //string cacheKey = "userInfo-"+ account;
+            //var userInfo = _cache.Get<LoginUserInfo>(cacheKey);
+            //if (userInfo == null) //缓存丢失
+            //{
+            //    //重新获取
+            //    userInfo = await _userRole.GetUserInfo(account);
+            //    if (userInfo == null)
+            //    {
+            //        return Ok(ResultMode<string>.NotFound("用户不存在"));
+            //    }
+            //    _cache.Set(cacheKey, userInfo);
+            //}
+            //return Ok(ResultMode<object>.Success(userInfo.DeptName));
         }
         /// <summary>
         /// 从缓存中获取部门职员
@@ -68,28 +65,30 @@ namespace ManageNew.Controllers.SalesDepartment
             var account = User.Claims.FirstOrDefault(c => c.Type == "account")?.Value;
             if (string.IsNullOrEmpty(account)) //token过期
             {
-                return Ok(ResultMode<string>.Failed("身份验证信息已过期"));
+                return Unauthorized(ResultMode<string>.Failed("身份验证信息已过期"));
             }
-            string cacheKey = "userInfo-" + account;
-            var userInfo = _cache.Get<LoginUserInfo>(cacheKey);
-            if (userInfo == null) //缓存丢失
-            {
-                //重新获取
-                userInfo = await _userRole.GetUserInfo(account);
-                if (userInfo == null)
-                {
-                    return Ok(ResultMode<string>.NotFound("用户不存在"));
-                }
-                _cache.Set(cacheKey, userInfo);
-            }
+            var result = await _userCache.GetDeptUsers(deptId, account);
+            return Ok(ResultMode<object>.Success(result));
 
-            if (deptId == 0)
-            {
-                return Ok(ResultMode<object>.Success(userInfo.DeptUsers));
-            }
+            //string cacheKey = "userInfo-" + account;
+            //var userInfo = _cache.Get<LoginUserInfo>(cacheKey);
+            //if (userInfo == null) //缓存丢失
+            //{
+            //    //重新获取
+            //    userInfo = await _userRole.GetUserInfo(account);
+            //    if (userInfo == null)
+            //    {
+            //        return Ok(ResultMode<string>.NotFound("用户不存在"));
+            //    }
+            //    _cache.Set(cacheKey, userInfo);
+            //}
 
-            var s = userInfo.DeptUsers.Where(d => d.DeptID == deptId);
-            return Ok(ResultMode<object>.Success(userInfo.DeptUsers.Where(d=>d.DeptID == deptId)));
+            //if (deptId == 0)
+            //{
+            //    return Ok(ResultMode<object>.Success(userInfo.DeptUsers));
+            //}
+            //var s = userInfo.DeptUsers.Where(d => d.DeptID == deptId);
+            //return Ok(ResultMode<object>.Success(userInfo.DeptUsers.Where(d=>d.DeptID == deptId)));
         }
 
         /// <summary>

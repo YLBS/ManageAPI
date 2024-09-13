@@ -1,5 +1,4 @@
-﻿using Common.Cache;
-using Common.Extensions;
+﻿using Commons.Extensions;
 using IService;
 using ManageNew.Authentication.JWT;
 using Microsoft.AspNetCore.Mvc;

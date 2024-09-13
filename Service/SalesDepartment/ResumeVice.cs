@@ -25,13 +25,38 @@ namespace Service.SalesDepartment
              _goodjobContext = goodjobContext;
          }
 
-        public Task<int> AddMemLibCommendVice(int memId, int salerUserId, int userId, int posId)
+        public async Task<int> AddMemLibCommendVice(string memIdPosIds, string viceIds, int userId)
         {
+            //原存储过程 Mem_AddMemLibCommendVice     
+            string[] viceId = viceIds.Split(",");
+            string[] memIdPosId=memIdPosIds.Split(",");
+            foreach (var v in viceId)
+            {
+                foreach (var item in memIdPosId)
+                {
+                    string[] mp=item.Split("-");
+                    if (mp.Length == 2)
+                    {
+                        var list = await _goodjobContext.MemLibCommendVices.Where(m =>
+                            m.MemId == Convert.ToInt32(mp[0]) && m.ViceId == Convert.ToInt32(v)).FirstOrDefaultAsync();
+                        if (list  == null)
+                        {
+                            MemLibCommendVice m= new MemLibCommendVice();
+                            m.MemId = Convert.ToInt32(mp[0]);
+                            m.PosId = Convert.ToInt32(mp[1]);
+                            m.ViceId = Convert.ToInt32(v);
+                            m.ReplId = userId;
+                            m.AddTime = DateTime.Now;
+                            await _goodjobContext.AddAsync(m);
+                        }
+                    }
+                }
+            }
 
-            throw new NotImplementedException();
+            return await _goodjobContext.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<ResumeViceInfo>> GetData(string filter)
+        public async Task<IEnumerable<ResumeViceInfo>> GetViceResume(string filter)
         {
             var parameters = new { where = filter};
             var result = await _queryContext.Database.GetDbConnection().QueryAsync<ResumeViceInfo>("My_GetResumeVice", parameters, commandType: CommandType.StoredProcedure);

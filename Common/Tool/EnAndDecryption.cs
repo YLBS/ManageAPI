@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace Common.Tool
+namespace Commons.Tool
 {
     /// <summary>
     /// 加密解密
