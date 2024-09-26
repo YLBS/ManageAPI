@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using Model;
 
-namespace ManageNew.ExceptionFilter
+namespace ManageNew.Filter
 {
     /// <summary>
     /// 全局异常过滤器

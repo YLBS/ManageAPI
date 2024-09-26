@@ -18,11 +18,10 @@ namespace ManageNew.Controllers.SalesDepartment
     public class PosController : ControllerBase
     {
         private readonly IPosService _posService;
-        public readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
         /// <summary>
         /// 构造方法
         /// </summary>
-        /// <param name="posService"></param>
         public PosController(IPosService posService, IConfiguration configuration)
         {
             _posService = posService;

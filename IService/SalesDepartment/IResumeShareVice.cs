@@ -100,5 +100,13 @@ namespace IService.SalesDepartment
         /// <param name="resumeIds"></param>
         /// <returns></returns>
         Task<int[]> CheckResume(int[] resumeIds);
+        /// <summary>
+        /// 获取注册简历Id
+        /// </summary>
+        /// <param name="myUserId"></param>
+        /// <returns></returns>
+        Task<int> GetUserRecommendId(int myUserId);
+
+        //Task<IEnumerable<Dic_JobFunctions>> GetJobFunction_s(int myUserId);
     }
 }

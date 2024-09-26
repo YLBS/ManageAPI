@@ -40,7 +40,7 @@
             app.Run(async context =>
             {
                 context.Response.ContentType = "text/plain; charset=utf-8";
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 await context.Response.WriteAsync("权限不足.");
             });
         }

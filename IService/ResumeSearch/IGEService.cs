@@ -25,6 +25,12 @@ namespace IService.ResumeSearch
         /// <param name="id"></param>
         /// <returns></returns>
         Task<GEResumeInfo> GE_GetResumeInfoById(int id);
-        
+        /// <summary>
+        /// 根据条件，获取简历数量
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+
+        Task<int> GetCountByFilter(string filter);
     }
 }

@@ -19,15 +19,14 @@ namespace ManageNew.Controllers.SalesDepartment
     public class MyCompanyController : ControllerBase
     {
         private readonly IMyCompany _company;
-        private readonly CheckPermission _cacheMange;
+       // private readonly CheckPermission _cacheMange;
         private readonly ManageUserCache _userCache;
         /// <summary>
         /// 构造方法
         /// </summary>
-        public MyCompanyController(IMyCompany company,CheckPermission memoryCache, ManageUserCache manageUserCache)
+        public MyCompanyController(IMyCompany company, ManageUserCache manageUserCache)
         {
             _company= company;
-            _cacheMange = memoryCache;
             _userCache = manageUserCache;
         }
 
@@ -106,9 +105,9 @@ namespace ManageNew.Controllers.SalesDepartment
         [HttpGet]
         public async Task<IActionResult> CheckCompanyViewPermission()
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-            var result = await _cacheMange.CheckCompanyViewPermission(CompanyViewEnum.ViewCompanyServiceInfo, Convert.ToInt32(userId));
-            return Ok(ResultMode<bool>.Success(result));
+            //var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            //var result = await _cacheMange.CheckCompanyViewPermission(CompanyViewEnum.ViewCompanyServiceInfo, Convert.ToInt32(userId));
+            return Ok(ResultMode<bool>.Success(true));
         }
         /// <summary>
         /// 获取企业信息，ViewCompany.aspx 
@@ -130,7 +129,6 @@ namespace ManageNew.Controllers.SalesDepartment
         public async Task<IActionResult> GetCompanyServiceById(int memId)
         {
             var result = await _company.GetCompanyServiceById(memId);
-            await Task.Delay(1);
             return Ok(ResultMode<object>.Success(result));
         }
         /// <summary>
@@ -141,9 +139,10 @@ namespace ManageNew.Controllers.SalesDepartment
         [HttpGet]
         public async Task<IActionResult> CheckViewCompanyUsername()
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-            var result = await _cacheMange.CheckCompanyViewPermission(CompanyViewEnum.ViewCompanyUsername, Convert.ToInt32(userId));
-            return Ok(ResultMode<bool>.Success(result));
+            return Ok(ResultMode<bool>.Success(true));
+            //var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            //var result = await _cacheMange.CheckCompanyViewPermission(CompanyViewEnum.ViewCompanyUsername, Convert.ToInt32(userId));
+            //return Ok(ResultMode<bool>.Success(result));
         }
         /// <summary>
         /// 获取企业的账号密码 ViewCompany.aspx 

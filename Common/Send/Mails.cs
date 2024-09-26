@@ -11,11 +11,11 @@ namespace Commons.Send;
 /// <summary>
 /// 通过依赖注入使用发邮件
 /// </summary>
-public class Mail
+public class Mails
 {
     private readonly IMemoryCache _cache;
     private static MailInfo? info;
-    public Mail(IMemoryCache cache)
+    public Mails(IMemoryCache cache)
     {
         _cache = cache;
     }

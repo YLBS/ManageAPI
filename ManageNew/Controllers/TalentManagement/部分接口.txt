@@ -1,0 +1,1 @@
+﻿1.待删除简历，打印简历 NewsPrintContent.aspx 获取数据 ResumeShareVice/GetResume 

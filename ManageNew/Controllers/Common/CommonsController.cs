@@ -16,12 +16,12 @@ namespace ManageNew.Controllers.Common
     [ApiExplorerSettings(GroupName = "共享接口")]
     public class CommonsController : ControllerBase
     {
-        public readonly IConfiguration _configuration;
-        public readonly Mail _mail;
+        private readonly IConfiguration _configuration;
+        private readonly Mails _mail;
         /// <summary>
         /// 构造方法
         /// </summary>
-        public CommonsController(IConfiguration configuration, Mail mail)
+        public CommonsController(IConfiguration configuration, Mails mail)
         {
             _configuration = configuration;
             _mail = mail;

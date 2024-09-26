@@ -16,7 +16,7 @@ namespace Commons.Helper
             _htmlEncoder = htmlEncoder;
         }
         /// <summary>
-        /// 格式化输出到页面的字符串，包括转换回车符
+        /// 格式化输出到页面的字符串，包括转换回车符 重复?
         /// </summary>
         /// <param name="htmlstr">要格式化的字符串</param>
         /// <param name="replace">是否替换换行符</param>

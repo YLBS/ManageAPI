@@ -14,6 +14,9 @@ namespace ManageNew.Extensions
     {
         private readonly RequestDelegate _next;
         private readonly JwtAuthOptions _jwtAuthOptions;
+        /// <summary>
+        /// 构造方法
+        /// </summary>
         public JwtMiddleware(RequestDelegate next, IOptions<JwtAuthOptions> options)
         {
             _jwtAuthOptions = options.Value;
@@ -35,8 +38,9 @@ namespace ManageNew.Extensions
             var token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             if (string.IsNullOrEmpty(token))
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsync("Missing or invalid token.");
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized; 
+                context.Response.ContentType = "text/plain; charset=utf-8";
+                await context.Response.WriteAsync("token丢失.");
                 return;
             }
 
@@ -46,7 +50,8 @@ namespace ManageNew.Extensions
                 if (principal == null)
                 {
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    await context.Response.WriteAsync("Invalid token.");
+                    context.Response.ContentType = "text/plain; charset=utf-8";
+                    await context.Response.WriteAsync("无效 token.");
                     return;
                 }
 
@@ -55,7 +60,7 @@ namespace ManageNew.Extensions
             catch (SecurityTokenExpiredException)
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsync("Token has expired.");
+                await context.Response.WriteAsync("Token过期.");
                 return;
             }
 

@@ -5,7 +5,7 @@ using Model;
 namespace ManageNew.Controllers.ResumeSearch
 {
     /// <summary>
-    /// 普工简历
+    /// 普工简历搜索 ,控制器名称和 普工简历管理 重复
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
@@ -22,7 +22,7 @@ namespace ManageNew.Controllers.ResumeSearch
         }
 
         /// <summary>
-        /// 普工简历搜索獲取数据
+        /// 普工简历搜索獲取数据,NesGENYResumeList.aspx
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -87,7 +87,7 @@ namespace ManageNew.Controllers.ResumeSearch
                 }
             }
 
-            if (addressT != 0 && addressD.HasValue)
+            if (addressT != 0 && addressT.HasValue)
                 filter += " and [Goodjob].[dbo].[GE_Resume].Address_T = " + addressT;
             if (beginDate != null)
             {

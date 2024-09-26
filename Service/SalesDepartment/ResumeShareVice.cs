@@ -144,7 +144,7 @@ namespace Service.SalesDepartment
             var parm = new { MyUserID = myUserId };
             try
             {
-                var resume = await _goodjobContext.MyResumes.Where(m => m.MyUserId == myUserId).SingleAsync();
+                //var resume = await _goodjobContext.MyResumes.Where(m => m.MyUserId == myUserId).SingleAsync();
                 //var user = await _goodjobContext.MyUsers.Where(m => m.MyUserId == myUserId).SingleAsync();
                 ////更新时间
                 //resumeInfo = new ResumeInfo(myUserId, 0, resume.UpdateDate, 0, null, null, null, null, null, null, null, null, null, null, null, null, null);
@@ -615,6 +615,13 @@ namespace Service.SalesDepartment
         {
             var s =  await _goodjobContext.MyUsers.Where(m => m.ResumeStatus == 1 && resumeIds.Contains(m.MyUserId)).Select(m=>m.MyUserId).ToArrayAsync();
             return s;
+        }
+
+        public async Task<int> GetUserRecommendId(int myUserId)
+        {
+            int id = await _goodjobContext.MyUsers.Where(m => m.MyUserId == myUserId).Select(m => m.RecommendId)
+                .FirstOrDefaultAsync();
+            return id;
         }
     }
 }

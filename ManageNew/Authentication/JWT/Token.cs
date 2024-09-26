@@ -2,6 +2,9 @@
 
 namespace ManageNew.Authentication.JWT
 {
+    /// <summary>
+    /// token
+    /// </summary>
     public class Token
     {
         /// <summary>

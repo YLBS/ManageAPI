@@ -24,15 +24,14 @@ namespace ManageNew.Controllers.ResumeSearch
     {
 
         private readonly IQuickSearch _quickSearch;
-        private readonly CheckPermission _checkPermission;
+       // private readonly CheckPermission _checkPermission;
         private readonly IJobEffect _iEffect;
         /// <summary>
         /// 构造方法
         /// </summary>
-        public ResumeSearchController(IQuickSearch quickSearch, CheckPermission checkPermission, IJobEffect effect)
+        public ResumeSearchController(IQuickSearch quickSearch, IJobEffect effect)
         {
             _quickSearch = quickSearch;
-            _checkPermission = checkPermission;
             _iEffect = effect;
         }
 
@@ -101,15 +100,17 @@ namespace ManageNew.Controllers.ResumeSearch
             //}
         }
         /// <summary>
-        /// ResumeSearchResult.aspx.aspx 检查权限,ExtranetResumeRecommend.aspx
+        /// ResumeSearchResult.aspx 检查权限,ExtranetResumeRecommend.aspx 外网简历推荐
         /// </summary>
         /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> CheckPersonViewPermission()
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-            var result = await _checkPermission.CheckPersonViewPermission(PersonViewEnum.SearchResume, Convert.ToInt32(userId));
-            return Ok(ResultMode<bool>.Success(result));
+            return Ok(ResultMode<bool>.Success(true));
+            //实际在权限过滤器做
+            //var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            //var result = await _checkPermission.CheckPersonViewPermission(PersonViewEnum.SearchResume, Convert.ToInt32(userId));
+            //return Ok(ResultMode<bool>.Success(result));
         }
         /// <summary>
         /// 高级搜索，获取数据
@@ -362,7 +363,7 @@ namespace ManageNew.Controllers.ResumeSearch
         }
 
         /// <summary>
-        /// SimulationResume.aspx，获取简历的Id,姓名，邮箱
+        /// 搜索结果，查看简历 SimulationResume.aspx，复审更新简历 新注册待审核简历 ，审核选中简历 CheckResume.aspx 
         /// </summary>
         /// <param name="myUserIds"></param>
         /// <returns></returns>

@@ -104,6 +104,16 @@ namespace Commons.Tool
             }
             return result;
         }
-        
+
+        /// <summary>
+        /// 加密并HTML编码
+        /// </summary>
+        /// <param name="UrlValues"></param>
+        /// <returns></returns>
+        public static string DESURL(string UrlValues)
+        {
+            return Uri.EscapeDataString(CompanyTool.EncryptDESTool(UrlValues));// Server.UrlEncode(CompanyTool.EncryptDESTool(UrlValues));
+        }
+
     }
 }

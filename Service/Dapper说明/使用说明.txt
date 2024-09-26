@@ -32,6 +32,9 @@
 	var parameters = new { Parameter1 = parameter1, Parameter2 = parameter2 };
 	var result = _context.Database.GetDbConnection().Execute("存储过程名称", parameters, commandType: CommandType.StoredProcedure);
 	result 为受影响行数
+
+	若存储过程有做判断，执行语句在return后，没有执行则会返回-1
+
 4.SQL查询返回一个总数目
 	string sql=""select count(*) from tableName";
 	var result = await _context.Database.GetDbConnection().QueryFirstOrDefaultAsync<int>(sql);

@@ -16,37 +16,39 @@ namespace ManageNew.Controllers.ResumeSearch
     public class ExtranetResumeCheckController : ControllerBase
     {
         private readonly IExtranetResumeCheck _check;
-        private readonly CheckPermission _checkPermission;
+        //private readonly CheckPermission _checkPermission;
         /// <summary>
         /// 构造方法
         /// </summary>
-        public ExtranetResumeCheckController(IExtranetResumeCheck check, CheckPermission checkPermission)
+        public ExtranetResumeCheckController(IExtranetResumeCheck check)
         {
             _check = check;
-            _checkPermission = checkPermission;
         }
+
+       
         /// <summary>
-        /// 检查权限
+        /// 检查权限,新注册不完整简历一样的，待删除简历一样的,简历完整度查询一样的
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> CheckPersonPermission()
+        public IActionResult CheckPersonPermission()
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-            var result = await _checkPermission.CheckPersonPermission(PersonEnum.CheckResume, Convert.ToInt32(userId));
-            if(!result)
-                return Ok(ResultMode<bool>.Success(result));
-            result = await _checkPermission.CheckPersonPermission(PersonEnum.ActiveResume, Convert.ToInt32(userId));
-            if (!result)
-                return Ok(ResultMode<bool>.Success(result));
-            result = await _checkPermission.CheckPersonPermission(PersonEnum.DeleteResume, Convert.ToInt32(userId));
-            return Ok(ResultMode<bool>.Success(result));
-
+            //var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            //var result = await _checkPermission.CheckPersonPermission(PersonEnum.CheckResume, Convert.ToInt32(userId));
+            //if(!result)
+            //    return Forbid();
+            //result = await _checkPermission.CheckPersonPermission(PersonEnum.ActiveResume, Convert.ToInt32(userId));
+            //if (!result)
+            //    return Forbid();
+            //result = await _checkPermission.CheckPersonPermission(PersonEnum.DeleteResume, Convert.ToInt32(userId));
+            //if (!result)
+            //    return Forbid();
+            return Ok(ResultMode<bool>.Success(true));
         }
-
+        
 
         /// <summary>
-        /// ExtranetResumeCheck.aspx 外网简历核对表,獲取數據
+        /// ExtranetResumeCheck.aspx 外网简历核对表,获取数据
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -116,7 +118,7 @@ namespace ManageNew.Controllers.ResumeSearch
         }
 
         /// <summary>
-        /// 返回账号密码
+        /// 返回加密的账号密码
         /// </summary>
         /// <param name="myUserId"></param>
         /// <returns></returns>

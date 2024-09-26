@@ -22,7 +22,11 @@ namespace ManageNew.Controllers.SalesDepartment
             _dept= dept;
 
         }
-
+        /// <summary>
+        /// 获取数据
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> GetData(string filter)
         {

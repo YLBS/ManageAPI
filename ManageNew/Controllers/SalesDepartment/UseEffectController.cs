@@ -17,6 +17,9 @@ namespace ManageNew.Controllers.SalesDepartment
     public class UseEffectController : ControllerBase
     {
         private readonly IUseEffectService _effectService;
+        /// <summary>
+        /// 构造方法
+        /// </summary>
         public UseEffectController(IUseEffectService effectService)
         {
             _effectService = effectService;

@@ -21,6 +21,7 @@ namespace Service.ResumeSearch
         }
         public async Task<IEnumerable<GEResumeInfo>> GE_GetResumesList(string filter, string order)
         {
+            //只查询前1000条数据
             var param = new { filter, orderBy = order };
             var result = await _context.Database.GetDbConnection().QueryAsync<GEResumeInfo>("GE_Get_ResumesList", param, commandType: CommandType.StoredProcedure);
             return result;
@@ -34,6 +35,13 @@ namespace Service.ResumeSearch
             return result;
         }
 
-        
+        public async Task<int> GetCountByFilter(string filter)
+        {
+            string sql = "select count(*) FROM [Goodjob].[dbo].[GE_Resume] inner join Goodjob.dbo.Mem_Position on [Goodjob].[dbo].[GE_Resume].[PosID]= Goodjob.dbo.Mem_Position.[PosID]  where 1=1 "+ filter;
+
+            var result = await _context.Database.GetDbConnection().QueryFirstOrDefaultAsync<int>(sql);
+            return result;
+            //throw new NotImplementedException();
+        }
     }
 }

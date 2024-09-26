@@ -16,7 +16,6 @@ namespace ManageNew.Tool
     /// </summary>
     public class CheckPermission
     {
-
         private  readonly IMemoryCache _cache;
         private readonly IMyCompany _company;
         /// <summary>

@@ -5,10 +5,11 @@ using Commons.Helper;
 using Commons.Send;
 using ManageNew.Authentication.JWT;
 using ManageNew.Tool;
-using ManageNew.ExceptionFilter;
+using ManageNew.Filter;
 using ManageNew.Extensions;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +35,9 @@ builder.Services.AddScoped<CheckPermission>();
 builder.Services.AddScoped<TempletHelper>();
 builder.Services.AddScoped<HtmlHelper>();
 builder.Services.AddScoped<ManageUserCache>();
-builder.Services.AddScoped<Mail>();
+builder.Services.AddScoped<Mails>();
+builder.Services.AddScoped<ReadResume>();
+
 //添加缓存
 builder.Services.AddResponseCaching(); //只适用于get请求
 builder.Services.AddMemoryCache();
@@ -58,6 +61,12 @@ builder.Services.AddSingleton(mapper);
 builder.Services.AddSwaggerSetup();
 builder.Services.AddDbContexts(builder.Configuration);
 
+//添加授权过滤器
+//builder.Services.AddScoped<IAsyncAuthorizationFilter, AuthorizeFilterAttribute>();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(new AuthorizeFilterAttribute());
+});
 // 跨域设置
 CorsSetup.AddCorsSetup(builder);
 
@@ -98,7 +107,7 @@ app.UseStaticFiles(new StaticFileOptions
 });
 app.MapControllers();
 
-app.UseMiddleware<JwtMiddleware>();
+//app.UseMiddleware<JwtMiddleware>();
 var errorRouteConfig = new ErrorRouteConfig(app);
 errorRouteConfig.ConfigureErrorRoutes();
 
