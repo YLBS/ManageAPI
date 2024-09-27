@@ -111,6 +111,7 @@ namespace ManageNew.Controllers.ResumeSearch
             var s = await _geService.GE_GetResumeInfoById(id);
             return Ok(ResultMode<object>.Success(s));
         }
+
         
     }
 }

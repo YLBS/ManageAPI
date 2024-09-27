@@ -32,5 +32,11 @@ namespace IService.ResumeSearch
         /// <returns></returns>
 
         Task<int> GetCountByFilter(string filter);
+        /// <summary>
+        /// 删除普工简历
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        Task<int> Del_GEResumeByIds(string ids);
     }
 }

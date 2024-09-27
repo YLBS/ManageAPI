@@ -43,5 +43,14 @@ namespace Service.ResumeSearch
             return result;
             //throw new NotImplementedException();
         }
+
+        public async Task<int> Del_GEResumeByIds(string isd)
+        {
+            //原存储过程 GE_Del_ResumeByIds
+            string sql = "delete from Goodjob.dbo.GE_Resume  where id in(" + isd + ")";
+
+            var result = await _context.Database.GetDbConnection().QueryFirstOrDefaultAsync<int>(sql);
+            return result;
+        }
     }
 }

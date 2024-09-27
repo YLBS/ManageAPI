@@ -210,5 +210,28 @@ namespace ManageNew.Controllers.TalentManagement
             int interview = await _geService.GetCountByFilter(" and IsInterview=1 " + filter);
             return Ok(ResultMode<Object>.Success(new { Data = s, totalCount, resultCount = s.Count(),readCount,interview }));
         }
+        /// <summary>
+        /// 删除普工简历
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> DelResume(string ids)
+        {
+            try
+            {
+                string[] idss = ids.Split(',');
+                Array.ConvertAll(idss, id => Convert.ToInt32(id));
+            }
+            catch
+            {
+                return BadRequest("参数错误");
+            }
+
+            int i = await _geService.Del_GEResumeByIds(ids);
+            if(i == 0)
+                return Ok(ResultMode<string>.Failed($"一共删除{i}份简历"));
+            return Ok(ResultMode<string>.Success("",$"一共删除{i}份简历"));
+        }
     }
 }
