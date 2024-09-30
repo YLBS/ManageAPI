@@ -256,24 +256,6 @@ namespace ManageNew.Controllers.TalentManagement
         }
         #endregion
 
-        /// <summary>
-        /// 设置为去电
-        /// </summary>
-        /// <param name="myUserId"></param>
-        /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> SetQd(int myUserId)
-        {
-            string userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-            int.TryParse(userIdStr, out int userId);
-            if (await _newResumeService.UpdateResumeIsqd(myUserId))
-            {
-                if (await _newResumeService.AddqdRecord(myUserId, userId))
-                {
-                    return Ok(ResultMode<string>.Success("", "设置成功"));
-                }
-            }
-            return Ok(ResultMode<string>.Failed("设置失败"));
-        }
+        
     }
 }

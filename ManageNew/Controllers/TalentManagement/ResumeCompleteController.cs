@@ -4,6 +4,7 @@ using IService.TalentManagement;
 using Microsoft.AspNetCore.Mvc;
 using Model;
 using Model.TalentManagement;
+using Service.TalentManagement;
 
 namespace ManageNew.Controllers.TalentManagement
 {
@@ -17,15 +18,17 @@ namespace ManageNew.Controllers.TalentManagement
     {
         private readonly ICheckComResume _checkComResume;
         private readonly IExtranetResumeCheck _check;
-        private readonly IResumeComplete _complete;
+        private readonly IResumeComplete _complete; 
+        private readonly INewResumeService _newResumeService;
         /// <summary>
         /// 构造方法
         /// </summary>
-        public ResumeCompleteController(ICheckComResume checkComResume, IExtranetResumeCheck check, IResumeComplete complete)
+        public ResumeCompleteController(ICheckComResume checkComResume, IExtranetResumeCheck check, IResumeComplete complete, INewResumeService newResumeService)
         {
             _checkComResume = checkComResume;
             _check = check;
             _complete = complete;
+            _newResumeService = newResumeService;
         }
 
         /// <summary>
@@ -168,9 +171,15 @@ namespace ManageNew.Controllers.TalentManagement
         [HttpGet]
         public async Task<IActionResult> SetQd(int myUserId,string describe,int qdType)
         {
-            var yn = await _complete.InsertCompleteQd(myUserId, describe, qdType);
-            if (yn)
-                return Ok(ResultMode<bool>.Success(true, "设置成功"));
+            string userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            int.TryParse(userIdStr, out int userId);
+            if (await _newResumeService.UpdateResumeIsqd(myUserId))
+            {
+                var yn = await _complete.InsertCompleteQd(userId, myUserId, describe, qdType);
+                if (yn)
+                    return Ok(ResultMode<bool>.Success(true, "设置成功"));
+            }
+                
             return Ok(ResultMode<string>.Failed("设置失败"));
         }
     }

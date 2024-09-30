@@ -31,6 +31,7 @@ namespace ManageNew.Filter
                     Content = "未授权。",
                     ContentType = "text/plain; charset=utf-8"
                 };
+                return;
             }
             int.TryParse(userIdStr, out int userId);
             if (!await IsAuthorized(context.HttpContext, userId))
@@ -49,8 +50,12 @@ namespace ManageNew.Filter
             var checkPermission = httpContext.RequestServices.GetService<CheckPermission>();
             if (checkPermission == null)
                 return false;
-            //外网简历核对,新注册不完整简历,待删除简历,简历完整度查询
-            if ( httpContext.Request.Path.StartsWithSegments("/api/ExtranetResumeCheck") || httpContext.Request.Path.StartsWithSegments("/api/NewResume") || httpContext.Request.Path.StartsWithSegments("/api/ResumeList")|| httpContext.Request.Path.StartsWithSegments("/api/ResumeComplete")) 
+            //外网简历核对,新注册不完整简历,待删除简历,简历完整度查询，外网导入简历管理，
+            if ( httpContext.Request.Path.StartsWithSegments("/api/ExtranetResumeCheck") ||
+                 httpContext.Request.Path.StartsWithSegments("/api/NewResume") || 
+                 httpContext.Request.Path.StartsWithSegments("/api/ResumeList")|| 
+                 httpContext.Request.Path.StartsWithSegments("/api/ResumeComplete") ||
+                 httpContext.Request.Path.StartsWithSegments("/api/ExtranetResumeManage")) 
             {
                 var result = await checkPermission.CheckPersonPermission(PersonEnum.CheckResume, userId);
                 if (!result)

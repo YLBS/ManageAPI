@@ -90,58 +90,65 @@ namespace ManageNew.Controllers
             //{
             //    return Ok(ResultMode<string>.Failed("身份验证信息已经过期"));
             //}
-            LoginUserInfo loginUserInfo = await _userRole.GetUserInfo(userName);
-            var s = await _tokenService.IssueTokenAsync(loginUserInfo);
-            //将用户信息缓存起来
-            string cacheKey = "userInfo-" + loginUserInfo.Username;
-            _cache.Set(cacheKey, loginUserInfo);
-
+            //LoginUserInfo loginUserInfo = await _userRole.GetUserInfo(userName);
+            //var s = await _tokenService.IssueTokenAsync(loginUserInfo);
+            ////将用户信息缓存起来
+            //string cacheKey = "userInfo-" + loginUserInfo.Username;
+            //_cache.Set(cacheKey, loginUserInfo);
+            var s = await Get(userName);
             return Ok(ResultMode<Token>.Success(s));
         }
 
         /// <summary>
         /// 刷新token
         /// </summary>
-        /// <param name="token"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> RefreshToken(string token = "")
+        public async Task<IActionResult> RefreshToken()
         {
-            if (string.IsNullOrEmpty(token))
+            //if (string.IsNullOrEmpty(token))
+            //{
+            //    return Ok(ResultMode<string>.Failed("Token已丢失"));
+            //}
+            var account = User.Claims.FirstOrDefault(c => c.Type == "account")?.Value;
+            if (account != null)  //Token未过期，重新生成token返回
             {
-                return Ok(ResultMode<string>.Failed("Token已丢失"));
+                var s = await Get(account);
+                return Ok(ResultMode<Token>.Success(s));
             }
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-            if (userId != null)  //Token未过期，重新生成token返回
-            {
-
-            }
+            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            //string c = cookieArgs.Replace(" ", "=");
             //解析过期token
             var jwtSecurityToken = await _tokenService.ReadJwtToken(token);
             if (jwtSecurityToken != null)
             {
-                userId = jwtSecurityToken.Claims
-                    .FirstOrDefault(s => s.Type == "UserId")?.Value;
+                account = jwtSecurityToken.Claims
+                    .FirstOrDefault(s => s.Type == "account")?.Value;
                 var i = Convert.ToInt32(jwtSecurityToken.Claims
                     .FirstOrDefault(s => s.Type == "refreshTokenExpires")?.Value);
                 var j = Convert.ToInt32(DateTime.Now.AddDays(1).ToUnixTimeStampSecond().ToString());
                 if (i > j) //允许刷新token时间内
                 {
-                    return Ok(jwtSecurityToken);
-                    //根据用户再查一遍用户信息，重新生成token返回
-                    //return await VerifyLogin(new LoginInfo());
-                }
-                else
-                {
-                    return Ok(ResultMode<string>.Failed("已超过刷新时间，请重新登录"));
-                }
-                
 
+                    //根据用户再查一遍用户信息，重新生成token返回
+                    var s = await Get(account);
+                    return Ok(ResultMode<Token>.Success(s));
+                    //return Ok(jwtSecurityToken);
+                }
+                return Ok(ResultMode<string>.Failed("已超过刷新时间，请重新登录"));
             }
             return Ok(ResultMode<string>.Failed("token验证失败，请重新登录"));
         }
 
-
+        private async Task<Token> Get(string userName)
+        {
+            LoginUserInfo loginUserInfo = await _userRole.GetUserInfo(userName);
+            var s = await _tokenService.IssueTokenAsync(loginUserInfo);
+            //将用户信息缓存起来
+            string cacheKey = "userInfo-" + loginUserInfo.Username;
+            _cache.Set(cacheKey, loginUserInfo);
+            return s;
+        }
 
     }
 }

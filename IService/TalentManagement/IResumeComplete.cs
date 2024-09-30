@@ -11,10 +11,11 @@ namespace IService.TalentManagement
         /// <summary>
         /// 添加去电
         /// </summary>
+        /// <param name="userId"></param>
         /// <param name="myUserId"></param>
         /// <param name="describe"></param>
         /// <param name="qdType"></param>
         /// <returns></returns>
-        Task<bool> InsertCompleteQd(int myUserId, string describe, int qdType);
+        Task<bool> InsertCompleteQd(int userId, int myUserId, string describe, int qdType);
     }
 }

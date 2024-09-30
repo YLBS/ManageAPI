@@ -20,9 +20,9 @@ namespace Service.TalentManagement
             _context = context;
         }
 
-        public async Task<bool> InsertCompleteQd(int myUserId, string describe, int qdType)
+        public async Task<bool> InsertCompleteQd(int userId, int myUserId, string describe, int qdType)
         {
-            var parameters = new { @myuserid = myUserId, @Describe = describe, @QdType= qdType };
+            var parameters = new { @myuserid = myUserId, @Describe = describe, @QdType= qdType, @userId= userId };
             var result = await _context.Database.GetDbConnection().ExecuteAsync("Mng_Insert_CompleteQd", parameters, commandType: CommandType.StoredProcedure);
             return result > 0;
         }

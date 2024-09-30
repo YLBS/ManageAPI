@@ -25,9 +25,9 @@ namespace ManageNew.Controllers.ResumeSearch
             _check = check;
         }
 
-       
+
         /// <summary>
-        /// 检查权限,新注册不完整简历一样的，待删除简历一样的,简历完整度查询一样的
+        /// 检查权限,新注册不完整简历一样的，待删除简历一样的,简历完整度查询，外网导入简历管理
         /// </summary>
         /// <returns></returns>
         [HttpGet]

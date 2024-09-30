@@ -49,7 +49,6 @@
 
   <ItemGroup>
     <Folder Include="DownResume\wkhtmltox\" />
-    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>

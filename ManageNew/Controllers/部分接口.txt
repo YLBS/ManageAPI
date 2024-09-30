@@ -1,0 +1,3 @@
+﻿1.检查权限 外网简历核对,新注册不完整简历,待删除简历,简历完整度查询，外网导入简历管理，
+2.待删除简历，打印简历 NewsPrintContent.aspx 获取数据 ResumeShareVice/GetResume 
+

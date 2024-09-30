@@ -62,3 +62,37 @@
 
 
 使用Dapper做自动映射，Dto里赋值的字段需要与跟数据库的查询的一致
+
+
+
+
+
+
+
+
+
+
+
+
+统一 设置去电的逻辑 
+1.修改 新注册不完整简历 的查询条件  
+2.修改 外网导入简历管理 的查询条件，直接连表查询，提高查询效率  
+3.存储过程 InsertCompleteQd 添加去电人  
+4.将 Pub_UserqdRecord 的数据迁移进 Mng_CompleteQd，根据 qdResult 补充去电状态，没有去电状态的旧数据 qdType 设为999
+5.更新简历表的去电状态
+
+
+设置去电逻辑
+1.新注册不完整简历 NewResumeList.aspx   以表 My_Resume 去左连接查询
+执行存储过程 UpdateResumeIsqd 更新简历为去电  UPDATE [Goodjob].[dbo].[My_Resume] SET[IsdqStatus] = 1 WHERE MyUserID = @myuserid、
+AddqdRecord 添加去电记录 	insert into [Goodjob].[dbo].[Pub_UserqdRecord]  values(@myuserid, @userid, CONVERT(varchar(100), GETDATE(), 120))
+
+
+2.外网导入简历管理 ResumeListNew.aspx  以表 OuterResume_Resume 去左连接查询
+执行存储过程 UpdateResumeIsqd 更新简历为去电  UPDATE [Goodjob].[dbo].[My_Resume] SET[IsdqStatus] = 1 WHERE MyUserID = @myuserid、
+AddqdRecord 添加去电记录   insert into [Goodjob].[dbo].[Pub_UserqdRecord]  values(@myuserid, @userid, CONVERT(varchar(100), GETDATE(), 120))
+后加的存储过程 Mng_InsertqdResult 添加记录去电结果 nsert into qdResult  (MyUserId,QdPerpleId,Result)  Values(@MyUserId,@QdPerpleId,@QdResult) 
+
+
+3.简历完整度查询  ResumeComplete.aspx 以表 My_Resume 去左连接查询 查询条件为 简历id不在表 Mng_CompleteQd 的简历
+执行存储过程  InsertCompleteQd  insert into Mng_CompleteQd (MyUserId,QdDate,QdType,Describe) values(@myuserid,GETDATE(),@QdType,@Describe)  
